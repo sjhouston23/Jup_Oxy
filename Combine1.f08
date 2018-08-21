@@ -7,6 +7,7 @@ program comb_files
 !* single run had taken place.
 !*******************************************************************************
 
+use, intrinsic :: ISO_FORTRAN_ENV
 use formatting
 implicit real*8(a-h,o-z)
 
@@ -16,11 +17,14 @@ integer energy,atmosLen
 parameter(nOutputFiles=19,MaxnTrials=1000,atmosLen=1544,nProc=36,nChS=10)
 parameter(nOxEngBins=5000,nStopPowerEBins=295,nE2strBins=260,MaxnLines=100000)
 
-integer err,start,nerr
-integer trial(MaxnTrials),collisions(8,5),Ccollisions(8,5),nLines(nOutputFiles)
+integer err,start,nerr !Error upon opening files
+integer trial(MaxnTrials),nLines(nOutputFiles) !Number of trials/lines in a file
 integer nL(nOutputFiles) !Number of lines there should be in a file
-integer,dimension(nStopPowerEBins) :: nSPions,CnSPions
+integer(kind=int64) :: collisions(8,5),Ccollisions(8,5),collSUM(8),CcollSUM(8)
+integer(kind=int64) :: SIM(5)
+integer(kind=int64),dimension(nStopPowerEBins) :: nSPions,CnSPions
 
+real*8 collPerc(8,5),CcollPerc(8,5),collPSUM(8),CcollPSUM(8)
 real*8 oxEngBins(nOxEngBins)
 real*8,dimension(nChS,nOxEngBins) :: OxyVsEng,COxyVsEng
 real*8,dimension(atmosLen) :: altitude,totalHp,totalH2p,H2Ex,CtotalHp,&
@@ -33,23 +37,36 @@ real*8,dimension(atmosLen,nE2strBins) :: prode2stF,prode2stB,Cprode2stF,&
 real*8,dimension(nProc,atmosLen,nChS) :: oxygen,Coxygen
 real*8,dimension(atmosLen,nChS) :: oxygenCX,CoxygenCX
 
-character(len=100) filename,filenames(nOutputFiles)
+character(len=1) random_number_file
+character(len=100) filename,filenames(nOutputFiles) !String of filenames
 character(len=1000) HpHeader,Hp2Header
 
 !****************************** Data Declaration *******************************
 data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Vs_Energy',&
 'Stopping_Power','Processes','Oxy_Neg','Oxy0_','Oxy1_','Oxy2_','Oxy3_','Oxy4_',&
 'Oxy5_','Oxy6_','Oxy7_','Oxy8_','Oxy_CX','2Str_Elect_Fwd','2Str_Elect_Bwd'/
-data nL/1547,1547,1548,5002,300,9,1545,1545,1545,1545,1545,1545,1545,1545,1545,&
-        1545,1545,40300,40300/
+data nL/1547,1547,1548,5002,300,23,1545,1545,1545,1545,1545,1545,1545,1545,&
+        1545,1545,1545,40300,40300/
 !********************************* Initialize **********************************
 nTrials=0;CtotHp=0.0;CtotH2p=0.0;CtotalHp=0.0;CtotalH2p=0.0;CH2Ex=0.0
 trial=0;COxyVsEng=0.0;CSPvsEng=0.0;CSigTotvsEng=0.0;CdEvsEng=0.0;CSigdEvsEng=0.0
 CnSPions=0;Ccollisions=0;Coxygen=0.0;CoxygenCX=0.0;CdNvsEng=0.0;start=1;nerr=0
+CcollSUM=0;CcollPerc=0.0;CcollPSUM=0
 !********** Open output data files for each set of initial energies ************
-energy=25000
-!write(filename,'("./Output/",I0,"keV/Elapsed_Times.dat")') energy
-write(filename,'("./Output/",I0,"keV/Seeds.dat")') energy
+write(*,*) "What energy?"
+read(*,*) energy !Input the initial ion energy
+!energy=100
+1003 continue
+write(*,*) "Use (e)lapsed_times.dat or (s)eeds.dat?"
+read(*,*) random_number_file !Choose which file to read the random number list
+if(random_number_file.eq.'e')then
+  write(filename,'("./Output/",I0,"keV/Elapsed_Times.dat")') energy
+elseif(random_number_file.eq.'s')then
+  write(filename,'("./Output/",I0,"keV/Seeds.dat")') energy
+else
+  write(*,*) "Not a valid option. Please input 'e' or 's'"
+  goto 1003
+endif
 open(unit=100,file=filename,status='old')
 do i=1,MaxnTrials
   read(100,*,end=1000) trial(i)
@@ -66,22 +83,21 @@ do n=start,nTrials
   OxyVsEng=0.0;SPvsEng=0.0;SigTotvsEng=0.0;dEvsEng=0.0;SigdEvsEng=0.0
   nSPions=0;collisions=0;oxygen=0.0;oxygenCX=0.0;dNvsEng=0.0
   nLines=0
-!*******************************************************************************
+!******************************** READ IN FILES ********************************
   m=trial(n)
-  do i=5,5!1,nOutputFiles
+  do i=1,nOutputFiles !Open all of the files
     write(filename,'("./Output/",I0,"keV/",A,I0,".dat")') &
           energy,trim(filenames(i)),trial(n)
     filename=trim(filename)
     open(unit=100+i,file=filename,status='old',iostat=err)
     if(err.gt.0)then
-      write(*,*) 'File:',n,'Trial:',m,'ERROR'
+      write(*,*) 'File:',n,'Trial:',m,'ERROR! File:',filename
       start=n+1
       nerr=nerr+1
       goto 1002
     end if
   end do
   write(*,*) 'File:',n,'Trial:',m
-  goto 2000
   do i=1,nOutputFiles
     do j=1,MaxnLines
       read(100+i,*,end=1001)
@@ -96,85 +112,88 @@ do n=start,nTrials
   rewind(100+i)
   end do
   do i=1,2
-    read(101,*)
+    read(101,*) !Read the headers of the first four files
     read(102,*)
     read(103,*)
+    read(103,*)
     read(104,*)
-    read(105,*)
-    read(105,*)
   end do
-  read(101,'(1x,A)') HpHeader
+  read(101,'(1x,A)') HpHeader !Save these headers to output later
   read(102,'(1x,A)') Hp2Header
-  read(103,*)
-  read(103,*)
-  read(105,*)
   do i=1,atmosLen !Ionization/Excitation vs. altitude
     if(nLines(1).eq.nL(1))read(101,F01) altitude(i),(totHp(j,i),j=1,31),totalHp(i)
     if(nLines(2).eq.nL(2))read(102,F01) altitude(i),(totH2p(j,i),j=1,11),totalH2p(i)
     if(nlines(3).eq.nL(3))read(103,F02) altitude(i),H2Ex(i)
   end do
-  CtotHp=CtotHp+totHp
+  CtotHp=CtotHp+totHp !Add up all the hydrogen ionizations/excitation
   CtotH2p=CtotH2p+totH2p
   CtotalHp=CtotalHp+totalHp
   CtotalH2p=CtotalH2p+totalH2p
   CH2Ex=CH2Ex+H2Ex
-  do i=1,nL(4)-2
+  do i=1,nL(4)-2 !Oxygen charge state distribution
     if(nlines(4).eq.nL(4))read(104,F03) oxEngBins(i),(OxyVsEng(j,i),j=1,nChS)
   end do
-  COxyVsEng=COxyVsEng+OxyVsEng
-  2000 continue
-  do i=1,5
+  COxyVsEng=COxyVsEng+OxyVsEng !Add up all the oxygen vs energy
+  do i=1,5 !Stopping power header
     read(105,*)
   end do
-  do i=1,275
+  do i=1,nL(5)-5 !Stopping power variables
     read(105,F04) stopPowerEbins(i),SPvsEng(i),SigTotvsEng(i),dEvsEng(i),&
                   dNvsEng(i),SigdEvsEng(i),nSPions(i)
   end do
-  CSPvsEng=CSPvsEng+SPvsEng
+  CSPvsEng=CSPvsEng+SPvsEng !Add up all the stopping power variables
   CSigTotvsEng=CSigTotvsEng+SigTotvsEng
   CdEvsEng=CdEvsEng+dEvsEng
   CdNvsEng=CdNvsEng+dNvsEng
   CSigdEvsEng=CSigdEvsEng+SigdEvsEng
   CnSPions=CnSPions+nSPions
-  goto 3000
-  ! read(106,*) !Processes header
-  ! do i=1,8
-  !   if(nlines(6).eq.nL(6))read(106,*) (collisions(i,j),j=1,5)
-  ! end do
-  ! Ccollisions=Ccollisions+collisions
+  read(106,*) !Processes header
+  do i=1,8 !Process counts
+    if(nlines(6).eq.nL(6))read(106,F06) dum,(collisions(i,j),j=1,5),collSUM(i)
+  end do
+  do i=1,4
+    read(106,*) !Additional lines to skip
+  end do
+  do i=1,8 !Processes by percentage
+    if(nlines(6).eq.nL(6))read(106,F07) dum,(collPerc(i,j),j=1,5),collPSUM(i)
+  end do
+  Ccollisions=Ccollisions+collisions !Number of collisions of each type
+  CcollSUM=CcollSUM+collSUM !Total number of collisions
+  CcollPerc=CcollPerc+collPerc !Percentage of each type of collision
+  CcollPSUM=CcollPSUM+collPSUM !Total percentage of each type of collision
   do i=1,nChS
     read(106+i,*) !Oxygen header
-    do j=1,atmosLen
-      if(nlines(6+i).eq.nL(6+i))read(106+i,F01) altitude(j),(oxygen(k,j,i),k=1,nProc)
+    do j=1,atmosLen !oxygen production rates
+      if(nlines(6+i).eq.nL(6+i))then
+        read(106+i,F01) altitude(j),(oxygen(k,j,i),k=1,nProc)
+      end if
     end do
   end do
-  Coxygen=Coxygen+oxygen
+  Coxygen=Coxygen+oxygen !Adding up oxygen production rates
   read(117,*) !Oxygen charge exchange header
-  do i=1,atmosLen
+  do i=1,atmosLen !Oxygen production from charge exchange
     if(nlines(17).eq.nL(17))read(117,F05) altitude(i),(oxygenCX(i,j),j=1,nChS)
   end do
-  CoxygenCX=CoxygenCX+oxygenCX
-  do j=1,nE2strBins
+  CoxygenCX=CoxygenCX+oxygenCX !Adding up oxygen charge exchange
+  do j=1,nE2strBins !Electron production rate for 2-stream
     if(nlines(18).eq.nL(18))read(118,F2Str) (prode2stF(i,j),i=atmosLen,1,-1)
     if(nlines(19).eq.nL(19))read(119,F2str) (prode2stB(i,j),i=atmosLen,1,-1)
   end do
-  Cprode2stF=Cprode2stF+prode2stF
+  Cprode2stF=Cprode2stF+prode2stF !Adding up electrons for 2-stream
   Cprode2stB=Cprode2stB+prode2stF
-  3000 continue
-  do i=5,5!1,nOutputFiles
+  do i=1,nOutputFiles !Close all of the files
     close(100+i)
   end do
 end do
-nTrials=nTrials-nerr
-!*******************************************************************************
+nTrials=nTrials-nerr !If there was an error opening a file, subtract it out
+!********************************** WRITE OUT **********************************
 write(*,*) 'Writing output files...'
-do i=5,5!1,nOutputFiles
+do i=1,nOutputFiles !Open the final combined files
   write(filename,'("./Output/",I0,"keV/",A,"_Comb.dat")') &
         energy,trim(filenames(i))
   filename=trim(filename)
   open(unit=200+i,file=filename,status='unknown')
 end do
-goto 4000
 write(201,H01) !H+ header
 write(201,*) trim(HpHeader)
 write(202,H02) !H2+ header
@@ -189,7 +208,6 @@ write(204,H04) !Oxy vs energy header
 do i=1,nOxEngBins !Oxygen charge state distribution
   write(204,F03) oxEngBins(i),(COxyVsEng(j,i)/real(nTrials),j=1,nChS)
 end do
-4000 continue
 write(205,H05) !Stopping power header
 do i=1,nStopPowerEBins !Stopping power vs. ion energy
   write(205,F04) stopPowerEBins(i), &
@@ -200,22 +218,37 @@ do i=1,nStopPowerEBins !Stopping power vs. ion energy
                  (CSigTotvsEng(i)*CdEvsEng(i))/(real(nTrials)**2), &
                  CnSPions(i)
 end do
-goto 5000
-! do i=1,8 !Total number of each type of collision
-!   write(206,*) (Ccollisions(i,j),j=1,5)
-! end do
+SIM=sum(Ccollisions,dim=1)
+write(206,H07) !Collisions header
+do i=1,8 !Total number of each type of collision
+  write(206,F06) Coll(i), (Ccollisions(i,j),j=1,5),CcollSUM(i)
+end do
+write(206,*) '------------------------------------------------------------&
+              --------------------------'
+write(206,F06) 'Sum     ',SIM(1),SIM(2),SIM(3),SIM(4),SIM(5)
+write(206,*) ''
+write(206,H07) !Collisions percentage header
+do i=1,8 !Total percentage of each type of collision
+  write(206,F07) Coll(i), (CcollPerc(i,j)/real(nTrials),j=1,5),&
+  CcollPSUM(i)/real(nTrials)
+end do
+write(206,*) '------------------------------------------------------------&
+              --------------------------'
+write(206,F07) 'Sum     ',real(SIM(1))/real(sum(SIM))*100,&
+ real(SIM(2))/real(sum(SIM))*100,real(SIM(3))/real(sum(SIM))*100,&
+ real(SIM(4))/real(sum(SIM))*100,real(SIM(5))/real(sum(SIM))*100
 do i=1,nChS !Oxygen production
   write(206+i,*) "Alt [km] ", (HProc(k),k=1,nProc)
   do j=1,atmosLen
     write(206+i,F01) altitude(j),(Coxygen(k,j,i)/real(nTrials),k=1,nProc)
   end do
 end do
-write(217,H06)
-do i=1,atmosLen
+write(217,H06) !Oxygen charge exchange header
+do i=1,atmosLen !Oxygen production from charge exchange
   write(217,F05) altitude(i),(CoxygenCX(i,j)/real(nTrials),j=1,nChS)
 end do
 !***************************** Secondary Electrons *****************************
-do i=1,atmosLen
+do i=1,atmosLen !Normalize electrons for 2-stream code
   do j=1,nE2strBins
     Cprode2stF(i,j)=real(Cprode2stF(i,j))/real(nTrials)
     Cprode2stB(i,j)=real(Cprode2stB(i,j))/real(nTrials)
@@ -225,8 +258,7 @@ do j=1,nE2strBins !2-Stream electrons, forward and backward
   write(218,F2Str) (prode2stF(i,j),i=atmosLen,1,-1)
   write(219,F2Str) (prode2stB(i,j),i=atmosLen,1,-1)
 end do
-5000 continue
-do i=5,5!1,nOutputFiles
+do i=1,nOutputFiles !Close the combine output files
   close(200+i)
 end do
 end program
