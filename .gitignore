@@ -9,6 +9,8 @@
 *.fig
 *.eps
 *.tex
+oxy
+comb
 ElectronDist
 NewElectronDist
 OldElectronDist
