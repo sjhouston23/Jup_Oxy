@@ -66,7 +66,7 @@ parameter(ne=2600,na=1800) !Number of electron energy and angle bins
 parameter(k1=0,k2=0,lux=3) !lux set to 3 for optimal randomness and timeliness
 parameter(nOxEngBins=5000,oxEngBinSize=5.0,mass=16.0) !Oxygen binning/mass
 parameter(nStopPowerEBins=295,stopPowerEBinSize=10.0) !Stopping power bins
-parameter(nOutputFiles=19) !Number of output files
+parameter(nOutputFiles=21) !Number of output files
 
 integer trial,number_of_ions,energy
 integer t1,t2,clock_maxTotal,clock_rateTotal !Used to calculate comp. time
@@ -155,7 +155,8 @@ data CXProc/2,4,6,8,9,10,12,14,20,23,24,25,30,36/
 !* Output data file names: (nOutputFiles)
 data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Vs_Energy',&
 'Stopping_Power','Processes','Oxy_Neg','Oxy0_','Oxy1_','Oxy2_','Oxy3_','Oxy4_',&
-'Oxy5_','Oxy6_','Oxy7_','Oxy8_','Oxy_CX','2Str_Elect_Fwd','2Str_Elect_Bwd'/
+'Oxy5_','Oxy6_','Oxy7_','Oxy8_','Oxy_CX','XRay_DE','XRay_CX','2Str_Elect_Fwd',&
+'2Str_Elect_Bwd'/
 !********************************** Run Time ***********************************
 !Calculate the total computational run time of the model:
 call system_clock (t1,clock_rateTotal,clock_maxTotal)
@@ -224,11 +225,11 @@ end do
 !* 1=1, 2=10, 3=50, 4=75, 5=100, 6=200, 7=500, 8=1000, 9=2000, 10=5000,
 !* 11=10000, 12=25000
 !*******************************************************************************
-number_of_ions=1!0!000
+number_of_ions=10!000
 
 call get_command_argument(1,arg)
 read(arg,'(I100)') trial
-do run=3,3!1,number_of_energies
+do run=9,9!1,number_of_energies
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
   energy=int(Eion(run))
   write(filename,'("./Output/",I0,"keV/Seeds.dat")') energy
@@ -253,8 +254,9 @@ do run=3,3!1,number_of_energies
   totHp =0;totalElect=0;tElectFwd =0;tElectBwd =0;SPvsEng=0.0    ;nSPions=0
   totH2p=0;eCounts   =0;electFwdA =0;electBwdA =0;SigTotvsEng=0.0;maxDpt=0
   H2Ex  =0;oxygen    =0;electFwdAE=0;electBwdAE=0;dEvsEng=0.0
+  XRayDE=0;XrayCX    =0
 !************************ Ion Precipitation Begins Here ************************
-  write(206,*) 'Starting Ion Precipitiaton: ', energy,'keV/u' !Double check eng
+  write(*,*) 'Starting Ion Precipitiaton: ', energy,'keV/u' !Double check eng
   flush(206)
   do ion=1,number_of_ions !Each ion starts here
     !*****************************
@@ -269,8 +271,8 @@ do run=3,3!1,number_of_energies
                        !enough to allow the ion to lose all energy
     E=Eion(run)        !Start with initial ion energy
     dE=0.0             !Energy loss
-    initQ=3            !1 is an initial charge state of -1
-    tempQ=initQ        !Set the charge state variable that will be changed to 1
+    initQ=3            !1 is an initial charge state of -1, 3 is +1
+    tempQ=initQ        !Set the charge state variable that will be changed
     tempQold=initQ     !Need another charge state variable for energyLoss.f08
     dNTot=0.0          !Reset the column density to the top of the atm.
     dZTot=3000.0       !Start from the top of the atmosphere
@@ -283,7 +285,7 @@ do run=3,3!1,number_of_energies
     !*****************************
     pangle=(2.0*atan(1.0))-acos(angle(ion)) !Pitch angle calculation has a
     !cosine dist. Straight down is pitch angle of 0, random number must be 0
-    write(206,*) 'Ion Number: ', ion, 'Pitch angle: ', pangle*90/acos(0.0)
+    write(*,*) 'Ion Number: ', ion, 'Pitch angle: ', pangle*90/acos(0.0)
     flush(206)
     kappa=1.0/(cos(pangle)*cos(incB)) !Used to convert from ds to dz
     call ranlux(ranVecA,1000002) !Get a random vector for collisions
@@ -390,6 +392,21 @@ do run=3,3!1,number_of_energies
         if(processE.le.4)eEnergy=eEnergy+eEnergyTmp
         addElect=addElect+1
       end do !j=1,elect
+!************************** Counting X-Ray Production **************************
+!* Note:
+!*  An X-Ray count at a specific altitude and charge state means that there was
+!*  an X-Ray producing collision at that specific altitude and the resultant ion
+!*  was at the recorded charge state. That means, a collision that goes from
+!*  O^8+ to O^7+ will be recorded as O^7+; therefore, the O^8+ bin will never
+!*  produce an X-Ray. The last bin should ALWAYS be 0. Each processes can only
+!*  create one X-Ray, if it's an X-Ray producing collision.
+!*  Direct excitation (X-RayDE) producing collisions:
+!*    TEX+SPEX(27) ,SI+SPEX(29), DI+SPEX(32)
+!*  Charge exchange (X-RayCX) producing collisions:
+!*    SC+SS(19), TI(25), SC(30)
+!*  This is all done in the writing of the outputfiles. X-Ray productions are
+!*  files 118 and 119 using the oxygen variable.
+!*******************************************************************************
 !********************** Counting Oxygen & H/H2 Production **********************
       oxygen(process,dpt,tempQ)=oxygen(process,dpt,tempQ)+1
       !If the process is SI, SC, or NEG, then there's a chance of dissociation
@@ -498,49 +515,29 @@ do run=3,3!1,number_of_energies
   write(102,H02) !H2+ header
   write(102,*) "Alt [km] ", (HProc(npH2P(i)),i=1,k), "Total"
   write(103,H03) !H2* header
-  count=0
   do i=1,atmosLen !Ionization/Excitation vs. altitude
     write(101,F01) altitude(i),(real(totHp(npHp(j),i))/norm,j=1,l),&
                    real(totalHp(i))/norm
     write(102,F01) altitude(i),(real(totH2p(npH2p(j),i))/norm,j=1,k),&
                    real(totalH2p(i))/norm
-    write(103,F02) altitude(i),real(H2Ex(i))/norm,i,atmosLen
-    count=count+1
+    write(103,F02) altitude(i),real(H2Ex(i))/norm
   end do
-  if(count.lt.atmosLen)then
-    write(206,F02a) altitude(count),real(H2Ex(count))/norm,i,atmosLen
-    flush(206)
-  end if
   totO=sum(OxyVsEng,dim=1)
   write(104,H04) !Oxy vs energy header
   do i=1,nOxEngBins !Oxygen charge state distribution
-    if(oxEngBins(i)-(oxEngBinSize/2.0).gt.Eion(run))goto 1001
     write(104,F03) oxEngBins(i)-(oxEngBinSize/2.0), &
                    (real(OxyVsEng(j,i))/real(totO(i)),j=1,nChS)
   end do
-1001 continue
   write(105,H05) !Stopping power header
   do i=1,nStopPowerEBins !Stopping power vs. ion energy
-    if(stopPowerEBins(i)-(delSP(i)/2.0).gt.Eion(run))goto 1002
     write(105,F04) stopPowerEBins(i)-(delSP(i)/2.0), &
                    SPvsEng(i)/real(nSPions(i)**2), &
                    SigTotvsEng(i)/real(nSPions(i)), &
                    dEvsEng(i)/real(nSPions(i)), &
                    dNvsEng(i)/real(nSPions(i)), &
                    (SigTotvsEng(i)*dEvsEng(i))/(real(nSPions(i))**2), &
-                   nSPions(i),i,nStopPowerEBins
+                   nSPions(i)
   end do
-  if(i.lt.nStopPowerEBins)then
-    write(206,F04a)stopPowerEBins(i)-(delSP(i)/2.0), &
-                   SPvsEng(i)/real(nSPions(i)**2), &
-                   SigTotvsEng(i)/real(nSPions(i)), &
-                   dEvsEng(i)/real(nSPions(i)), &
-                   dNvsEng(i)/real(nSPions(i)), &
-                   (SigTotvsEng(i)*dEvsEng(i))/(real(nSPions(i))**2), &
-                   nSPions(i),i,nStopPowerEBins
-                   flush(206)
-  end if
-1002 continue
   NSIM=sum(collisions,dim=2)
   SIM=sum(collisions,dim=1)
   write(106,H07) !Collisions header
@@ -568,10 +565,17 @@ do run=3,3!1,number_of_energies
       write(106+i,F01) altitude(j),(real(oxygen(k,j,i))/norm,k=1,nProc)
     end do
   end do
-!  write(*,*) sum(oxygen),sum(oxygenCX)
-  write(117,H06)
-  do i=1,atmosLen
+  do i=1,5
+    write(116+i,H06)
+  end do
+  do i=1,atmosLen !Oxygen production from charge exchange
     write(117,F05) altitude(i),(real(oxygenCX(i,j))/norm,j=1,nChS)
+  end do
+  do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
+    write(118,F05) altitude(i),& !X-Ray production from direct excitation
+      (real(oxygen(27,i,j)+oxygen(29,i,j)+oxygen(32,i,j))/norm,j=1,nChs)
+    write(119,F05) altitude(i),& !X-Ray production from charge exchange
+      (real(oxygen(19,i,j)+oxygen(25,i,j)+oxygen(30,i,j))/norm,j=1,nChs)
   end do
 !***************************** Secondary Electrons *****************************
   do i=1,atmosLen
@@ -581,8 +585,8 @@ do run=3,3!1,number_of_energies
     end do
   end do
   do j=1,nE2strBins !2-Stream electrons, forward and backward
-    write(118,F2Str) (prode2stF(i,j),i=atmosLen,1,-1)
-    write(119,F2Str) (prode2stB(i,j),i=atmosLen,1,-1)
+    write(120,F2Str) (prode2stF(i,j),i=atmosLen,1,-1)
+    write(121,F2Str) (prode2stB(i,j),i=atmosLen,1,-1)
   end do
 !**************** Close all of the files that have been opened *****************
   do i=1,nOutputFiles
