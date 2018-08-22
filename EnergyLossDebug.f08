@@ -216,6 +216,7 @@ elseif(PID(1).eq.1)then !Single Ionization
 elseif(PID(1).eq.2)then !Double Ionization
   dE=IP1+IP2+electEnergy !Both electron energies have been added together
 elseif(PID(1).eq.3)then !Transfer Ionization
+!  dE=IP1+electenergy+dETI(bin,tempQ)
   if(f.ge.0.5)dE=IP1+electenergy+(f*dETI(bin,tempQ)+(1-f)*dETI(bin-1,tempQ))
   if(f.lt.0.5)dE=IP1+electenergy+(f*dETI(bin+1,tempQ)+(1-f)*dETI(bin,tempQ))
 elseif(PID(1).eq.4)then !Single Capture
@@ -229,10 +230,13 @@ elseif(PID(1).eq.6)then !Double-Capture Autoionization
 elseif(PID(1).eq.7)then !Target Excitation
   dE=7.7
 end if
-
+!~ dE=0.0 !~
 !* Go through the "projectile" processes
 !* To review SS and DS frame of reference transformations refer to Schutlz,
 !* et al. 2018, Appendix B
+! if(PID(2).eq.1)then !Single Stripping Average Eloss
+!   if(f.ge.0.5)dE=(f*dESS(bin,tempQ)+(1-f)*dESS(bin-1,tempQ))
+!   if(f.lt.0.5)dE=(f*dESS(bin+1,tempQ)+(1-f)*dESS(bin,tempQ))
 if(PID(2).eq.1)then !Single Stripping
   electEnergyAU1=eEnergySS/auCon !Convert to a.u.
   Vproj=sqrt(2.0*E*16.0/oMass)*c !In a.u.
@@ -241,18 +245,28 @@ if(PID(2).eq.1)then !Single Stripping
   electEnergySS=(0.5)*Vsquared*auCon !Convert back to eV
   ThetaP=acos(Vz/sqrt(Vsquared))*180/pi
   dE=dE+IPO(tempQ)+electEnergySS
+  ! eE=electEnergySS
+  ! eA=ThetaP
+!  write(*,*) eEnergySS,electEnergySS,eAngleSS,ThetaP,IPO(tempQ)
+!**  write(*,10000) eEnergySS,eAngleSS,electEnergyAU1,Vproj,Vz,Vsquared,electEnergySS,dE
+! elseif(PID(2).eq.2)then !Double Stripping Average Eloss
+!   if(f.ge.0.5)dE=(f*dEDS(bin,tempQ)+(1-f)*dEDS(bin-1,tempQ))
+!   if(f.lt.0.5)dE=(f*dEDS(bin+1,tempQ)+(1-f)*dEDS(bin,tempQ))
 elseif(PID(2).eq.2)then !Double Stripping
   electEnergyAU1=eEnergyDS(1)/auCon !Convert to a.u.
   Vproj=sqrt(2.0*E*16.0/oMass)*c !In a.u.
   Vz=sqrt(2.0*electEnergyAU1)*cos(eAngleDS(1)*pi/180.0)-Vproj !In a.u.
   Vsquared=(2*electEnergyAU1)-(2*Vz*Vproj)-Vproj**2 !Electron velocity squared
   electEnergyDS1=(0.5)*Vsquared*auCon !Convert back to eV
+!  if(E.lt.360.5)write(*,*) Vproj,Vz,Vsquared,electenergyDS1,eEnergyDS(1),eAngleDS(1),pi
   electEnergyAU2=eEnergyDS(2)/auCon !Convert to a.u.
   Vproj=sqrt(2.0*E*16.0/oMass)*c !In a.u.
   Vz=sqrt(2.0*electEnergyAU2)*cos(eAngleDS(2)*pi/180.0)-Vproj !In a.u.
   Vsquared=(2*electEnergyAU2)-(2*Vz*Vproj)-Vproj**2 !Electron velocity squared
   electenergyDS2=(0.5)*Vsquared*auCon !Convert back to eV
+!  if(E.lt.360.5)write(*,*) Vproj,Vz,Vsquared,electenergyDS2,eEnergyDS(2),eAngleDS(2),pi
   dE=dE+IPO(tempQ)+IPO(tempQ+1)+electenergyDS1+electenergyDS2
+!  if(E.lt.360.5)write(*,*) IPO(tempQ)+IPO(tempQ+1)+electenergyDS1+electenergyDS2
 elseif(PID(2).eq.3)then !Single Projectile Excitation
   if(f.ge.0.5)dE=dE+(f*dESPEX(bin,tempQ)+(1-f)*dESPEX(bin-1,tempQ))
   if(f.lt.0.5)dE=dE+(f*dESPEX(bin+1,tempQ)+(1-f)*dESPEX(bin,tempQ))
@@ -261,4 +275,6 @@ elseif(PID(2).eq.4)then !Double Projectile Excitation
   if(f.lt.0.5)dE=dE+(f*dEDPEX(bin+1,tempQ)+(1-f)*dEDPEX(bin,tempQ))
 end if
 
+!**10000 format(5x,F9.2,20x,F9.2,11x,3(F9.3,5x),2x,F9.2,10x,F9.2,10x,F9.2)!,F9.2,2x,F8.2,2x,F8.2,)
+!**if(E.lt.360.5)write(*,*) dE, IP1, IP2, electenergyDS1, electenergyDS2
 end subroutine
