@@ -132,23 +132,16 @@ logical open
 
 !****************************** Data Declaration *******************************
 !* Initial ion enegy input:
-!data Eion/10.0,15.0,20.0,30.0,45.0,60.0,75.0,120.0,220.0,450.0,500.0,750.0,&
-!          1000.0,1250.0,1500.0,1750.0,2000.0,2500.0,3000.0,4000.0,5000.0,&
-!          10000.0,25000.0/
-          !The first 10 are Juno energy bins from JEDI.
 data Eion/1.0,10.0,50.0,75.0,100.0,200.0,500.0,1000.0,2000.0,5000.0,10000.0,&
           25000.0/
 !dE for each 2-Stream energy bin. Must match two stream code binning
 data del/20*0.5,70*1.0,10*2.0,20*5.0,10*10.0,20*10.0,10*50.0,10*100.0,40*200.0,&
          10*400,10*1000,10*2000,10*5000,10*10000.0/
 data engBins/nOxEngBins*oxEngBinSize/ !Used for oxygen binning
-!data delSP/100*0.1,990*1.0,400*10/ !Binning for stopping power (n=1490)
-!data delSP/1000*1.0,400*10,200*100/ !Binning for stopping power (n=1600)
 data delSP/100*1.0,90*10,90*100,15*1000/ !Binning for stopping power (n=295)
 data delAVGe/200*10,400*20,140*100,50*1000/
 data processC/28,30,18,20,13,15,23,25,27,29,22,24,12,14,33,35,3,5,22,24,8,10,&
               16,26,11,23,24,2,4,21,7,9,31,1,6,36/
-!data processEnergies/1,10,50,75,100,200,500,1000,1100,1400,1450,1600/!nStopPowerEBins
 data processEnergies/1,10,50,75,100,110,140,190,200,230,280,295/!nStopPowerEBins
 !* Charge exchange process numbers
 data CXProc/2,4,6,8,9,10,12,14,20,23,24,25,30,36/
@@ -254,9 +247,8 @@ do run=9,9!1,number_of_energies
   totHp =0;totalElect=0;tElectFwd =0;tElectBwd =0;SPvsEng=0.0    ;nSPions=0
   totH2p=0;eCounts   =0;electFwdA =0;electBwdA =0;SigTotvsEng=0.0;maxDpt=0
   H2Ex  =0;oxygen    =0;electFwdAE=0;electBwdAE=0;dEvsEng=0.0
-  XRayDE=0;XrayCX    =0
 !************************ Ion Precipitation Begins Here ************************
-  write(*,*) 'Starting Ion Precipitiaton: ', energy,'keV/u' !Double check eng
+  write(206,*) 'Starting Ion Precipitiaton: ', energy,'keV/u' !Double check eng
   flush(206)
   do ion=1,number_of_ions !Each ion starts here
     !*****************************
@@ -285,7 +277,7 @@ do run=9,9!1,number_of_energies
     !*****************************
     pangle=(2.0*atan(1.0))-acos(angle(ion)) !Pitch angle calculation has a
     !cosine dist. Straight down is pitch angle of 0, random number must be 0
-    write(*,*) 'Ion Number: ', ion, 'Pitch angle: ', pangle*90/acos(0.0)
+    write(206,*) 'Ion Number: ', ion, 'Pitch angle: ', pangle*90/acos(0.0)
     flush(206)
     kappa=1.0/(cos(pangle)*cos(incB)) !Used to convert from ds to dz
     call ranlux(ranVecA,1000002) !Get a random vector for collisions
@@ -299,7 +291,7 @@ do run=9,9!1,number_of_energies
       eAngleDS=0.0;eEnergyDS=0.0
       !*****************************
       call CollisionSim(E,tempQ,sigTot,process,excite,elect,disso,PID)
-      collisions(PID(1)+1,PID(2)+1)=collisions(PID(1)+1,PID(2)+1)+1!Count collisions
+      collisions(PID(1)+1,PID(2)+1)=collisions(PID(1)+1,PID(2)+1)+1!Counting
 7000 continue
       l=l+1
       if(l.ge.1000000)then
@@ -347,7 +339,7 @@ do run=9,9!1,number_of_energies
         elseif(PID(1).eq.3.and.addElect.le.10)then !Transfer Ionization
           processE=3
           addElect=addElect+10
-        elseif(PID(1).eq.6.and.addElect.le.10)then !Double-Capture Autoionization
+        elseif(PID(1).eq.6.and.addElect.le.10)then !DoubleCapture Autoionization
           processE=4
           addElect=addElect+10
         elseif(PID(2).eq.1.and.addElect.gt.10)then !Single Stripping
@@ -384,8 +376,8 @@ do run=9,9!1,number_of_energies
           electBwdA(dpt)=electBwdA(dpt)+1 !Electrons backward vs. alt.
           electBwdAE(dpt,bin)=electBwdAE(dpt,bin)+1 !Elect bwd vs. alt. and eng.
         else !If the electron is ejected so far backward it's going fwd again
-          write(206,*) "JupOxyPrecip.f08: WARNING: Elect ejection angle greater &
-                      than 270 degrees."
+          write(206,*) "JupOxyPrecip.f08: WARNING: Elect ejection angle &
+                        greater than 270 degrees."
         end if
         !Only want to add the electron energies for the NSIM process since SS
         !and DS have to be transformed into a different reference frame
@@ -429,7 +421,9 @@ do run=9,9!1,number_of_energies
       dEsp=(dE)/dN !stopping power (calc before dE is recalculated)
       dEold=dE
       dE=(1/mass)*(1.0e-3)*(dE+stpnuc(E)*dN)*kappa !Total dE function
-      if(dN.lt.0.0)write(206,10001) E,dEsp,dE,dN,dEold,process,PID(1),PID(2),tempQold
+      if(dN.lt.0.0)then !Change in column density should never be less than 0
+        write(206,10001) E,dEsp,dE,dN,dEold,process,PID(1),PID(2),tempQold
+      end if
 !********************** Oxygen Charge State Distribution ***********************
       do j=1,nOxEngBins
         if(E.le.oxEngBins(j))then
@@ -444,9 +438,11 @@ do run=9,9!1,number_of_energies
           SigTotvsEng(j)=SigTotvsEng(j)+SigTotOld
           dEvsEng(j)=dEvsEng(j)+dEold !Times 16 to get rid of eV/u
           dNvsEng(j)=dNvsEng(j)+dN
-          ProcessdE(j,processC(process),tempQold)=ProcessdE(j,processC(process),tempQold)+dEold
+          ProcessdE(j,processC(process),tempQold)=&
+            ProcessdE(j,processC(process),tempQold)+dEold
           nSPions(j)=nSPions(j)+1
-          pnSPions(j,processC(process),tempQold)=pnSPions(j,processC(process),tempQold)+1
+          pnSPions(j,processC(process),tempQold)=&
+            pnSPions(j,processC(process),tempQold)+1
           goto 3000
         end if
       end do

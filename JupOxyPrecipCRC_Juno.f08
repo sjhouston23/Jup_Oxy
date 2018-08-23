@@ -66,7 +66,7 @@ parameter(ne=2600,na=1800) !Number of electron energy and angle bins
 parameter(k1=0,k2=0,lux=3) !lux set to 3 for optimal randomness and timeliness
 parameter(nOxEngBins=5000,oxEngBinSize=5.0,mass=16.0) !Oxygen binning/mass
 parameter(nStopPowerEBins=295,stopPowerEBinSize=10.0) !Stopping power bins
-parameter(nOutputFiles=19) !Number of output files
+parameter(nOutputFiles=21) !Number of output files
 
 integer trial,number_of_ions,energy
 integer t1,t2,clock_maxTotal,clock_rateTotal !Used to calculate comp. time
@@ -137,26 +137,22 @@ data Eion/10.625,15.017,20.225,29.783,46.653,59.770,77.522,120.647,218.125,&
           456.250/ !Juno energy bins from JEDI.
 !* Juno ion flux for each energy bin:
 data nJunoIons/22.397,22.828,22.915,30.014,26.076,9.381,3.753,5.299,3.546,1.000/
-!data Eion/1.0,10.0,50.0,75.0,100.0,200.0,500.0,1000.0,2000.0,5000.0,10000.0,&
-!          25000.0/
 !dE for each 2-Stream energy bin. Must match two stream code binning
 data del/20*0.5,70*1.0,10*2.0,20*5.0,10*10.0,20*10.0,10*50.0,10*100.0,40*200.0,&
          10*400,10*1000,10*2000,10*5000,10*10000.0/
 data engBins/nOxEngBins*oxEngBinSize/ !Used for oxygen binning
-!data delSP/100*0.1,990*1.0,400*10/ !Binning for stopping power (n=1490)
-!data delSP/1000*1.0,400*10,200*100/ !Binning for stopping power (n=1600)
 data delSP/100*1.0,90*10,90*100,15*1000/ !Binning for stopping power (n=295)
 data delAVGe/200*10,400*20,140*100,50*1000/
 data processC/28,30,18,20,13,15,23,25,27,29,22,24,12,14,33,35,3,5,22,24,8,10,&
               16,26,11,23,24,2,4,21,7,9,31,1,6,36/
-!data processEnergies/1,10,50,75,100,200,500,1000,1100,1400,1450,1600/!nStopPowerEBins
 data processEnergies/1,10,50,75,100,110,140,190,200,230,280,295/!nStopPowerEBins
 !* Charge exchange process numbers
 data CXProc/2,4,6,8,9,10,12,14,20,23,24,25,30,36/
 !* Output data file names: (nOutputFiles)
 data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Vs_Energy',&
 'Stopping_Power','Processes','Oxy_Neg','Oxy0_','Oxy1_','Oxy2_','Oxy3_','Oxy4_',&
-'Oxy5_','Oxy6_','Oxy7_','Oxy8_','Oxy_CX','2Str_Elect_Fwd','2Str_Elect_Bwd'/
+'Oxy5_','Oxy6_','Oxy7_','Oxy8_','Oxy_CX','XRay_DE','XRay_CX','2Str_Elect_Fwd',&
+'2Str_Elect_Bwd'/
 !********************************** Run Time ***********************************
 !Calculate the total computational run time of the model:
 call system_clock (t1,clock_rateTotal,clock_maxTotal)
@@ -227,7 +223,7 @@ end do
 !* 1=1, 2=10, 3=50, 4=75, 5=100, 6=200, 7=500, 8=1000, 9=2000, 10=5000,
 !* 11=10000, 12=25000
 !*******************************************************************************
-!number_of_ions=100!0!000
+!number_of_ions=100!0!000 !Number of ions is determined by Juno measurement
 
 call get_command_argument(1,arg)
 read(arg,'(I100)') trial
@@ -301,7 +297,7 @@ call ranlux(angle,number_of_ions) !Calculate all the angles to be used here
       eAngleDS=0.0;eEnergyDS=0.0
       !*****************************
       call CollisionSim(E,tempQ,sigTot,process,excite,elect,disso,PID)
-      collisions(PID(1)+1,PID(2)+1)=collisions(PID(1)+1,PID(2)+1)+1!Count collisions
+      collisions(PID(1)+1,PID(2)+1)=collisions(PID(1)+1,PID(2)+1)+1!Counting
 7000 continue
       l=l+1
       if(l.ge.1000000)then
@@ -349,7 +345,7 @@ call ranlux(angle,number_of_ions) !Calculate all the angles to be used here
         elseif(PID(1).eq.3.and.addElect.le.10)then !Transfer Ionization
           processE=3
           addElect=addElect+10
-        elseif(PID(1).eq.6.and.addElect.le.10)then !Double-Capture Autoionization
+        elseif(PID(1).eq.6.and.addElect.le.10)then !DoubleCapture Autoionization
           processE=4
           addElect=addElect+10
         elseif(PID(2).eq.1.and.addElect.gt.10)then !Single Stripping
@@ -386,14 +382,29 @@ call ranlux(angle,number_of_ions) !Calculate all the angles to be used here
           electBwdA(dpt)=electBwdA(dpt)+1 !Electrons backward vs. alt.
           electBwdAE(dpt,bin)=electBwdAE(dpt,bin)+1 !Elect bwd vs. alt. and eng.
         else !If the electron is ejected so far backward it's going fwd again
-          write(206,*) "JupOxyPrecip.f08: WARNING: Elect ejection angle greater &
-                      than 270 degrees."
+          write(206,*) "JupOxyPrecip.f08: WARNING: Elect ejection angle &
+                        greater than 270 degrees."
         end if
         !Only want to add the electron energies for the NSIM process since SS
         !and DS have to be transformed into a different reference frame
         if(processE.le.4)eEnergy=eEnergy+eEnergyTmp
         addElect=addElect+1
       end do !j=1,elect
+!************************** Counting X-Ray Production **************************
+!* Note:
+!*  An X-Ray count at a specific altitude and charge state means that there was
+!*  an X-Ray producing collision at that specific altitude and the resultant ion
+!*  was at the recorded charge state. That means, a collision that goes from
+!*  O^8+ to O^7+ will be recorded as O^7+; therefore, the O^8+ bin will never
+!*  produce an X-Ray. The last bin should ALWAYS be 0. Each processes can only
+!*  create one X-Ray, if it's an X-Ray producing collision.
+!*  Direct excitation (X-RayDE) producing collisions:
+!*    TEX+SPEX(27) ,SI+SPEX(29), DI+SPEX(32)
+!*  Charge exchange (X-RayCX) producing collisions:
+!*    SC+SS(19), TI(25), SC(30)
+!*  This is all done in the writing of the outputfiles. X-Ray productions are
+!*  files 118 and 119 using the oxygen variable.
+!*******************************************************************************
 !********************** Counting Oxygen & H/H2 Production **********************
       oxygen(process,dpt,tempQ)=oxygen(process,dpt,tempQ)+1
       !If the process is SI, SC, or NEG, then there's a chance of dissociation
@@ -416,7 +427,9 @@ call ranlux(angle,number_of_ions) !Calculate all the angles to be used here
       dEsp=(dE)/dN !stopping power (calc before dE is recalculated)
       dEold=dE
       dE=(1/mass)*(1.0e-3)*(dE+stpnuc(E)*dN)*kappa !Total dE function
-      if(dN.lt.0.0)write(206,10001) E,dEsp,dE,dN,dEold,process,PID(1),PID(2),tempQold
+      if(dN.lt.0.0)then !Change in column density should never be less than 0
+        write(206,10001) E,dEsp,dE,dN,dEold,process,PID(1),PID(2),tempQold
+      end if
 !********************** Oxygen Charge State Distribution ***********************
       do j=1,nOxEngBins
         if(E.le.oxEngBins(j))then
@@ -431,9 +444,11 @@ call ranlux(angle,number_of_ions) !Calculate all the angles to be used here
           SigTotvsEng(j)=SigTotvsEng(j)+SigTotOld
           dEvsEng(j)=dEvsEng(j)+dEold !Times 16 to get rid of eV/u
           dNvsEng(j)=dNvsEng(j)+dN
-          ProcessdE(j,processC(process),tempQold)=ProcessdE(j,processC(process),tempQold)+dEold
+          ProcessdE(j,processC(process),tempQold)=&
+            ProcessdE(j,processC(process),tempQold)+dEold
           nSPions(j)=nSPions(j)+1
-          pnSPions(j,processC(process),tempQold)=pnSPions(j,processC(process),tempQold)+1
+          pnSPions(j,processC(process),tempQold)=&
+            pnSPions(j,processC(process),tempQold)+1
           goto 3000
         end if
       end do
@@ -566,10 +581,17 @@ do i=1,nChS !Oxygen production
     write(106+i,F01) altitude(j),(real(oxygen(k,j,i))/norm,k=1,nProc)
   end do
 end do
-!  write(*,*) sum(oxygen),sum(oxygenCX)
-write(117,H06)
-do i=1,atmosLen
+do i=1,5
+  write(116+i,H06)
+end do
+do i=1,atmosLen !Oxygen production from charge exchange
   write(117,F05) altitude(i),(real(oxygenCX(i,j))/norm,j=1,nChS)
+end do
+do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
+  write(118,F05) altitude(i),& !X-Ray production from direct excitation
+    (real(oxygen(27,i,j)+oxygen(29,i,j)+oxygen(32,i,j))/norm,j=1,nChs)
+  write(119,F05) altitude(i),& !X-Ray production from charge exchange
+    (real(oxygen(19,i,j)+oxygen(25,i,j)+oxygen(30,i,j))/norm,j=1,nChs)
 end do
 !***************************** Secondary Electrons *****************************
 do i=1,atmosLen
@@ -579,8 +601,8 @@ do i=1,atmosLen
   end do
 end do
 do j=1,nE2strBins !2-Stream electrons, forward and backward
-  write(118,F2Str) (prode2stF(i,j),i=atmosLen,1,-1)
-  write(119,F2Str) (prode2stB(i,j),i=atmosLen,1,-1)
+  write(120,F2Str) (prode2stF(i,j),i=atmosLen,1,-1)
+  write(121,F2Str) (prode2stB(i,j),i=atmosLen,1,-1)
 end do
 !**************** Close all of the files that have been opened *****************
 do i=1,nOutputFiles

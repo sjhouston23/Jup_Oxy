@@ -66,7 +66,7 @@ parameter(ne=2600,na=1800) !Number of electron energy and angle bins
 parameter(k1=0,k2=0,lux=3) !lux set to 3 for optimal randomness and timeliness
 parameter(nOxEngBins=5000,oxEngBinSize=5.0,mass=16.0) !Oxygen binning/mass
 parameter(nStopPowerEBins=295,stopPowerEBinSize=10.0) !Stopping power bins
-parameter(nOutputFiles=19) !Number of output files
+parameter(nOutputFiles=21) !Number of output files
 
 integer trial,number_of_ions,energy
 integer t1,t2,clock_maxTotal,clock_rateTotal !Used to calculate comp. time
@@ -155,7 +155,8 @@ data CXProc/2,4,6,8,9,10,12,14,20,23,24,25,30,36/
 !* Output data file names: (nOutputFiles)
 data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Vs_Energy',&
 'Stopping_Power','Processes','Oxy_Neg','Oxy0_','Oxy1_','Oxy2_','Oxy3_','Oxy4_',&
-'Oxy5_','Oxy6_','Oxy7_','Oxy8_','Oxy_CX','2Str_Elect_Fwd','2Str_Elect_Bwd'/
+'Oxy5_','Oxy6_','Oxy7_','Oxy8_','Oxy_CX','XRay_DE','XRay_CX','2Str_Elect_Fwd',&
+'2Str_Elect_Bwd'/
 !********************************** Run Time ***********************************
 !Calculate the total computational run time of the model:
 call system_clock (t1,clock_rateTotal,clock_maxTotal)
@@ -175,8 +176,6 @@ do i=1,atmosLen
   read(201,*)dum,dum,dum,dum,dum,totalDens(atmosLen-i+1),dum,dum,H(atmosLen-i+1)
   altDelta(i)=2.0
 end do
-write(*,*) i
-stop
 close(200) !Close column density file
 close(201) !Close atmosphere file
 !*********************** Ejected Electron Probabilities ************************
@@ -241,11 +240,11 @@ end do
 !* 1=1, 2=10, 3=50, 4=75, 5=100, 6=200, 7=500, 8=1000, 9=2000, 10=5000,
 !* 11=10000, 12=25000
 !*******************************************************************************
-number_of_ions=100
+number_of_ions=10
 
 !call get_command_argument(1,arg)
 !read(arg,'(I100)') trial
-trial = 3
+trial = 2
 do run=5,5!1,number_of_energies
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
   energy=int(Eion(run))
@@ -406,6 +405,21 @@ do run=5,5!1,number_of_energies
         if(processE.le.4)eEnergy=eEnergy+eEnergyTmp
         addElect=addElect+1
       end do !j=1,elect
+!************************** Counting X-Ray Production **************************
+!* Note:
+!*  An X-Ray count at a specific altitude and charge state means that there was
+!*  an X-Ray producing collision at that specific altitude and the resultant ion
+!*  was at the recorded charge state. That means, a collision that goes from
+!*  O^8+ to O^7+ will be recorded as O^7+; therefore, the O^8+ bin will never
+!*  produce an X-Ray. The last bin should ALWAYS be 0. Each processes can only
+!*  create one X-Ray, if it's an X-Ray producing collision.
+!*  Direct excitation (X-RayDE) producing collisions:
+!*    TEX+SPEX(27) ,SI+SPEX(29), DI+SPEX(32)
+!*  Charge exchange (X-RayCX) producing collisions:
+!*    SC+SS(19), TI(25), SC(30)
+!*  This is all done in the writing of the outputfiles. X-Ray productions are
+!*  files 118 and 119 using the oxygen variable.
+!*******************************************************************************
 !********************** Counting Oxygen & H/H2 Production **********************
       oxygen(process,dpt,tempQ)=oxygen(process,dpt,tempQ)+1
       !If the process is SI, SC, or NEG, then there's a chance of dissociation
@@ -568,9 +582,17 @@ do run=5,5!1,number_of_energies
       write(106+i,F01) altitude(j),(real(oxygen(k,j,i))/norm,k=1,nProc)
     end do
   end do
-  write(117,H06)
+  do i=1,5
+    write(116+i,H06)
+  end do
   do i=1,atmosLen
     write(117,F05) altitude(i),(real(oxygenCX(i,j))/norm,j=1,nChS)
+  end do
+  do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
+    write(118,F05) altitude(i),& !X-Ray production from direct excitation
+      (real(oxygen(27,i,j)+oxygen(29,i,j)+oxygen(32,i,j))/norm,j=1,nChs)
+    write(119,F05) altitude(i),& !X-Ray production from charge exchange
+      (real(oxygen(19,i,j)+oxygen(25,i,j)+oxygen(30,i,j))/norm,j=1,nChs)
   end do
 !***************************** Secondary Electrons *****************************
   do i=1,atmosLen
@@ -580,16 +602,14 @@ do run=5,5!1,number_of_energies
     end do
   end do
   do j=1,nE2strBins !2-Stream electrons, forward and backward
-    write(118,F2Str) (prode2stF(i,j),i=atmosLen,1,-1)
-    write(119,F2Str) (prode2stB(i,j),i=atmosLen,1,-1)
+    write(120,F2Str) (prode2stF(i,j),i=atmosLen,1,-1)
+    write(121,F2Str) (prode2stB(i,j),i=atmosLen,1,-1)
   end do
 !**************** Close all of the files that have been opened *****************
   do i=1,nOutputFiles
     close(100+i)
   end do
 !****************** Write to screen some general information *******************
-  NSIM=sum(collisions,dim=2)
-  SIM=sum(collisions,dim=1)
   write(*,*) '--------------------------------------------------'
   write(*,*) ' (NEG)  =',NSIM(1)
   write(*,*) ' (SI)   =',NSIM(2)
