@@ -53,7 +53,7 @@ trial=0;COxyVsEng=0.0;CSPvsEng=0.0;CSigTotvsEng=0.0;CdEvsEng=0.0;CSigdEvsEng=0.0
 CnSPions=0;Ccollisions=0;Coxygen=0.0;CoxygenCX=0.0;CdNvsEng=0.0;start=1;nerr=0
 CcollSUM=0;CcollPerc=0.0;CcollPSUM=0
 !********** Open output data files for each set of initial energies ************
-write(*,*) "What energy?"
+write(*,*) "What energy [kev]?"
 read(*,*) energy !Input the initial ion energy
 !energy=100
 1003 continue
