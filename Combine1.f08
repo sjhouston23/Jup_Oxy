@@ -26,6 +26,8 @@ integer(kind=int64),dimension(nStopPowerEBins) :: nSPions,CnSPions
 
 real*8 collPerc(8,5),CcollPerc(8,5),collPSUM(8),CcollPSUM(8)
 real*8 oxEngBins(nOxEngBins)
+real*8 IntegratedXRay(2,nChS) !1 is DE, 2 is CX
+real*8 altDelta !Width of atmosphere bins (2.0 km)
 real*8,dimension(nChS,nOxEngBins) :: OxyVsEng,COxyVsEng
 real*8,dimension(atmosLen) :: altitude,totalHp,totalH2p,H2Ex,CtotalHp,&
                               CtotalH2p,CH2Ex
@@ -82,7 +84,7 @@ do n=start,nTrials
   totHp=0.0;totH2p=0.0;totalHp=0.0;totalH2p=0.0;H2Ex=0.0
   OxyVsEng=0.0;SPvsEng=0.0;SigTotvsEng=0.0;dEvsEng=0.0;SigdEvsEng=0.0
   nSPions=0;collisions=0;oxygen=0.0;oxygenCX=0.0;dNvsEng=0.0
-  nLines=0
+  nLines=0;IntegratedXRay=0.0
 !******************************** READ IN FILES ********************************
   m=trial(n)
   do i=1,nOutputFiles !Open all of the files
@@ -121,8 +123,10 @@ do n=start,nTrials
   read(101,'(1x,A)') HpHeader !Save these headers to output later
   read(102,'(1x,A)') Hp2Header
   do i=1,atmosLen !Ionization/Excitation vs. altitude
-    if(nLines(1).eq.nL(1))read(101,F01) altitude(i),(totHp(j,i),j=1,31),totalHp(i)
-    if(nLines(2).eq.nL(2))read(102,F01) altitude(i),(totH2p(j,i),j=1,11),totalH2p(i)
+    if(nLines(1).eq.nL(1))read(101,F01) altitude(i),&
+      (totHp(j,i),j=1,31),totalHp(i)
+    if(nLines(2).eq.nL(2))read(102,F01) altitude(i),&
+      (totH2p(j,i),j=1,11),totalH2p(i)
     if(nlines(3).eq.nL(3))read(103,F02) altitude(i),H2Ex(i)
   end do
   CtotHp=CtotHp+totHp !Add up all the hydrogen ionizations/excitation
@@ -247,6 +251,42 @@ write(217,H06) !Oxygen charge exchange header
 do i=1,atmosLen !Oxygen production from charge exchange
   write(217,F05) altitude(i),(CoxygenCX(i,j)/real(nTrials),j=1,nChS)
 end do
+!****************************** X-Ray Production *******************************
+write(filename,'("./Output/",I0,"keV/XRay_DE_Comb.dat")') energy
+open(unit=300,file=trim(filename),status='unknown') !Open X-Ray direct excite
+write(filename,'("./Output/",I0,"keV/XRay_CX_Comb.dat")') energy
+open(unit=301,file=trim(filename),status='unknown') !Open X-Ray charge exchange
+altDelta=2.0e5 !2 km = 200,000 cm
+write(300,N01) !X-Ray DE Note
+write(301,N02) !X-Ray CX Note
+write(300,*) !Extra space
+write(301,*) !Extra space
+write(300,H08) !Altitude integrated X-ray production header
+write(301,H08) !Altitude integrated X-ray production header
+write(300,H09) !Charge state header
+write(301,H09) !Charge state header
+do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
+  do j=1,nChS
+    IntegratedXRay(1,j)=IntegratedXRay(1,j)+&
+      real(oxygen(27,i,j)+oxygen(29,i,j)+oxygen(32,i,j))*altDelta !DE
+    IntegratedXRay(2,j)=IntegratedXRay(2,j)+&
+      real(oxygen(19,i,j)+oxygen(25,i,j)+oxygen(30,i,j))*altDelta !CX
+  end do
+end do
+write(300,F05) altDelta/1e5,(IntegratedXRay(1,j)/real(nTrials),j=1,nChS) !DE
+write(301,F05) altDelta/1e5,(IntegratedXRay(2,j)/real(nTrials),j=1,nChS) !CX
+write(300,*) !Extra space
+write(301,*) !Extra space
+write(300,H10) !X-Ray production vs. altitude header
+write(301,H10) !X-Ray production vs. altitude header
+write(300,H06) !Charge state header
+write(301,H06) !Charge state header
+do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
+  write(300,F05) altitude(i),& !X-Ray production from direct excitation
+    (real(oxygen(27,i,j)+oxygen(29,i,j)+oxygen(32,i,j))/real(nTrials),j=1,nChs)
+  write(301,F05) altitude(i),& !X-Ray production from charge exchange
+    (real(oxygen(19,i,j)+oxygen(25,i,j)+oxygen(30,i,j))/real(nTrials),j=1,nChs)
+end do
 !***************************** Secondary Electrons *****************************
 do i=1,atmosLen !Normalize electrons for 2-stream code
   do j=1,nE2strBins
@@ -261,4 +301,6 @@ end do
 do i=1,nOutputFiles !Close the combine output files
   close(200+i)
 end do
+close(300)
+close(301)
 end program
