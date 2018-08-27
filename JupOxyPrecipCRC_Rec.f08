@@ -218,7 +218,7 @@ end do
 !* 1=1, 2=10, 3=50, 4=75, 5=100, 6=200, 7=500, 8=1000, 9=2000, 10=5000,
 !* 11=10000, 12=25000
 !*******************************************************************************
-number_of_ions=50!000
+number_of_ions=50
 call get_command_argument(1,arg)
 read(arg,'(I100)') trial
 !*************************** Random Number Generator ***************************
@@ -226,7 +226,7 @@ read(arg,'(I100)') trial
 in=trial !RNG seed
 call rluxgo(lux,in,k1,k2)
 !********************************** Begin Run **********************************
-do run=2,10!number_of_energies
+do run=2,number_of_energies
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
   energy=int(Eion(run))
   write(filename,'("./Output/",I0,"keV/Seeds.dat")') energy
@@ -492,7 +492,7 @@ do run=2,10!number_of_energies
     open(unit=100+i,file=filename,status='unknown')
   end do
 !***************************** Write out to files ******************************
-  norm=number_of_ions*2e5 !Normalization condition to per ion per km
+  norm=number_of_ions*2e5 !Normalization condition to per ion per cm
   totalHp=sum(totHp,dim=1)
   totalH2p=sum(totH2p,dim=1)
   pHp=sum(totHp,dim=2)
@@ -564,7 +564,7 @@ do run=2,10!number_of_energies
       write(106+i,F01) altitude(j),(real(oxygen(k,j,i))/norm,k=1,nProc)
     end do
   end do
-  do i=1,5
+  do i=1,3
     write(116+i,H06)
   end do
   do i=1,atmosLen !Oxygen production from charge exchange
