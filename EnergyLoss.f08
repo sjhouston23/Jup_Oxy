@@ -196,7 +196,7 @@ do i=12,1,-1 !This will only apply to the dE(process) variables
   end if
 end do
 10 continue
-if (bin.eq.0) write(*,*) 'EnergyLoss.f08: Error! i=0'
+if (bin.eq.0) write(206,*) 'EnergyLoss.f08: Error! i=0'
 
 !* Want to use f to linearly interpolate energy losses between big bins for the
 !* dE(process) data points.

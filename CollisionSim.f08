@@ -145,16 +145,16 @@ data XSFile /'dcds','dcdpex','dcaids','dcaidpex','tids','tidpex','scds',&
 !Calculate the total computational run time of the collision read in:
 if(dum.gt.24999)goto 2000
 call system_clock (t1,clock_rateTotal,clock_maxTotal)
-write(*,*) 'CollisionSim.f08: Opening collision process files...'
+write(206,*) 'CollisionSim.f08: Opening collision process files...'
 do i=1,nFiles
   write(filename,'("./SIMXSInterp/",A,".dat")') trim(XSfile(i))
   open(unit=99+i,file=filename,status='old',iostat=error) !Open all files
   if(error.gt.0)then !If there is an error opening one of the files
-    write(*,*) 'CollisionSim.f08: Error opening file: ',filename
+    write(206,*) 'CollisionSim.f08: Error opening file: ',filename
     STOP 'CollisionSim.f08: Stopping program...'
   end if
 end do
-write(*,*) 'CollisionSim.f08: Reading collision process files...'
+write(206,*) 'CollisionSim.f08: Reading collision process files...'
 do i=1,25000 !Read in all the cross-sections including the total cross-section
   read(100,*,iostat=errorP(1))  dum, (dcds(j,i),j=1,ChS5)
   read(101,*,iostat=errorP(2))  dum, (dcdpex(j,i),j=1,ChS5)
@@ -196,7 +196,7 @@ do i=1,25000 !Read in all the cross-sections including the total cross-section
   !Make sure all the files are read correctly and if not, where was the problem
   do j=1,nFiles
     if(errorP(j).gt.0)then
-      write(*,'(A,I3.2,A,I6)') 'CollisionSim.f08: Error reading file&
+      write(206,'(A,I3.2,A,I6)') 'CollisionSim.f08: Error reading file&
                                corresponding to no.',j,' at an energy of',i
       STOP 'CollisionSim.f08: Stopping program...'
     end if
@@ -206,7 +206,7 @@ do i=1,nFiles !Close all the files we've opened
   close(99+i)
 end do
 call system_clock (t2,clock_rateTotal,clock_maxTotal)
-write(*,*) 'CollisionSim.f08: Collision process files opened, read, and closed &
+write(206,*) 'CollisionSim.f08: Collision process files opened, read, and closed &
             in', real(t2-t1)/clock_rateTotal, 'seconds.'
 2000 continue
 !*******************************************************************************
@@ -340,15 +340,15 @@ elseif(tempQ.eq.10)then !************************* O8+ *************************
   prob(34)=si(tempQ,E)/sigTot(tempQ,E)
   prob(35)=di(tempQ,E)/sigTot(tempQ,E)
 else !Error readout
-  write(*,*) "CollisionSim.f08: WARNING: Collision probability is uninitialized"
-  write(*,*) "CollisionSim.f08: The charge state (tempQ) does not lie between &
+  write(206,*) "CollisionSim.f08: WARNING: Collision probability is uninitialized"
+  write(206,*) "CollisionSim.f08: The charge state (tempQ) does not lie between &
               1 and 9."
   STOP "CollisionSim.f08: Stopping program..."
 endif
 if(sum(prob).ge.1.01.or.sum(prob).le.0.9999)then
-  write(*,*) "CollisionSim.f08: WARNING: Normalized collision probability is &
+  write(206,*) "CollisionSim.f08: WARNING: Normalized collision probability is &
               not close enough to 1. The value is: ", sum(prob)
-  write(*,*) "tempQ: ", tempQ, "Energy: ", E
+  write(206,*) "tempQ: ", tempQ, "Energy: ", E
 end if
 !*******************************************************************************
 !************************* Collision-Type Determination ************************
@@ -699,7 +699,7 @@ do i=1,36
   end if
 end do
 if(ranVecB(1).ge.sumProb)then
-  write(*,*)'CollisionSim.f08: ERROR: Random number greater than normalized &
+  write(206,*)'CollisionSim.f08: ERROR: Random number greater than normalized &
   probability:', ranVecB(1), sumProb
   STOP 'CollisionSim.f08: Stopping program...'
 end if

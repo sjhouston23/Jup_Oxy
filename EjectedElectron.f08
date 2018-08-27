@@ -94,7 +94,7 @@ do t=12,1,-1 !* Loop through energy bins of differential cross sections
   endif
 enddo
 10 continue
-if (i.eq.0) write(*,*) 'EjectedElectron.f08: Error! i=0'
+if (i.eq.0) write(206,*) 'EjectedElectron.f08: Error! i=0'
 !* Want to use f to somewhat interpolate the cross-section for ion energies that
 !* lie between energy bins.
 if (k.eq.1) f=(E-ion_energies(i-1))/(ion_energies(i)-ion_energies(i-1))
