@@ -260,9 +260,9 @@ do run=2,number_of_energies
   do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
     do j=1,nChS
       IntegratedXRay(1,j)=IntegratedXRay(1,j)+&
-        real(oxygen(27,i,j)+oxygen(29,i,j)+oxygen(32,i,j))*altDelta !DE
+        real(Coxygen(27,i,j)+Coxygen(29,i,j)+Coxygen(32,i,j))*altDelta !DE
       IntegratedXRay(2,j)=IntegratedXRay(2,j)+&
-        real(oxygen(19,i,j)+oxygen(25,i,j)+oxygen(30,i,j))*altDelta !CX
+        real(Coxygen(19,i,j)+Coxygen(25,i,j)+Coxygen(30,i,j))*altDelta !CX
     end do
   end do
   write(300,F05) altDelta/1e5,(IntegratedXRay(1,j)/real(nTrials),j=1,nChS) !DE
@@ -275,9 +275,11 @@ do run=2,number_of_energies
   write(301,H06) !Charge state header
   do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
     write(300,F05) altitude(i),& !X-Ray production from direct excitation
-      (real(oxygen(27,i,j)+oxygen(29,i,j)+oxygen(32,i,j))/real(nTrials),j=1,nChs)
+      (real(Coxygen(27,i,j)+Coxygen(29,i,j)+Coxygen(32,i,j))/real(nTrials),&
+      j=1,nChs)
     write(301,F05) altitude(i),& !X-Ray production from charge exchange
-      (real(oxygen(19,i,j)+oxygen(25,i,j)+oxygen(30,i,j))/real(nTrials),j=1,nChs)
+      (real(Coxygen(19,i,j)+Coxygen(25,i,j)+Coxygen(30,i,j))/real(nTrials),&
+      j=1,nChs)
   end do
   !***************************** Secondary Electrons *****************************
   do i=1,atmosLen !Normalize electrons for 2-stream code
