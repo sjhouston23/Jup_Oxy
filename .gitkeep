@@ -1,0 +1,5 @@
+Atmosphere/Input/JunoColumnDensity_2km.dat
+Atmosphere/Input/JunoAtmosphere_2km.dat
+NewElectronDist/ProbDistFunc/eprobfunc.dat
+NewElectronDist/ProbDistFunc/aprobfunc.dat
+SIMXSInterp/*.dat
