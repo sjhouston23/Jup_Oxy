@@ -253,6 +253,10 @@ do run=2,number_of_energies
   write(301,N02) !X-Ray CX Note
   write(300,*) !Extra space
   write(301,*) !Extra space
+  write(300,H11) !Extra space
+  write(301,H11) !Extra space
+  write(300,*) !Extra space
+  write(301,*) !Extra space
   write(300,H08) !Altitude integrated X-ray production header
   write(301,H08) !Altitude integrated X-ray production header
   write(300,H09) !Charge state header

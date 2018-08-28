@@ -28,6 +28,7 @@ H09="(' ΔAlt [km]  ONeg',7x,'O',10x,'O+',9x,'O2+',8x,'O3+',8x,'O4+',8x,'O5+',&
       8x,'O6+',8x,'O7+',8x,'O8+')",&
 H10="(' Photon production [photons cm^-3 s^-1] as a function of altitude',&
       ' and charge state.')",&
+H11="(' Initial input of 1 ion cm^-2 s^-1')",&
 !******************************* Notes Variables *******************************
 N01="(' Note: The X-Ray production below is from direct excitation of a',&
       ' charge state. If an electron gets excited and then',/,6x,&
