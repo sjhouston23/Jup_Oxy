@@ -230,6 +230,7 @@ end do
 
 call get_command_argument(1,arg)
 read(arg,'(I100)') trial
+call sleep(trial/10000)
 write(filename,'("./Output/Juno/PJ7_1/Seeds.dat")')
 open(unit=205,file=filename,status='unknown',access='append',action='write')
 write(205,*) trial
@@ -519,7 +520,6 @@ call ranlux(angle,number_of_ions) !Calculate all the angles to be used here
   sec=mod(real(t4-t3)/clock_rate,60.0)
   write(206,*) 'Individual run elapsed real time = ',hrs,':',min,':',sec
   deallocate(angle)
-  close(206)
 end do !run=1,number_of_energies
 !********** Open output data files for each set of initial energies ************
 do i=1,nOutputFiles
@@ -633,9 +633,10 @@ hrs=int(real(t2-t1)/clock_rate/3600.0)
 min=int(((real(t2-t1)/clock_rate)-hrs*3600)/60)
 sec=mod(real(t2-t1)/clock_rate,60.0)
 write(filename,"('./Output/Juno/PJ7_1/Elapsed_Times.dat')")
-1003 continue
-inquire(file=filename,opened=open)
-if(open)goto 1003
+! 1003 continue
+! inquire(file=filename,opened=open)
+! if(open)goto 1003
+close(206)
 open(unit=207,file=filename,status='unknown',access='append',action='write')
 write(207,*) trial,hrs,':',min,':',sec
 close(207)
