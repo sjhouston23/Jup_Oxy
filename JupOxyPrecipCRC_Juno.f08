@@ -136,6 +136,9 @@ logical open
 data Eion/10.625,15.017,20.225,29.783,46.653,59.770,77.522,120.647,218.125,&
           456.250/ !Juno energy bins from JEDI.
 !* Juno ion flux for each energy bin:
+! This is normalized to 1 ion for the highest energy bin
+!  Highest energy bin has 6831 ions/cm^2/s. This can be split up into 99 ions
+!  over 69 runs. Or 99 ions over 138 runs then normalize by a factor of 2.
 data nJunoIons/22.397,22.828,22.915,30.014,26.076,9.381,3.753,5.299,3.546,1.000/
 !dE for each 2-Stream energy bin. Must match two stream code binning
 data del/20*0.5,70*1.0,10*2.0,20*5.0,10*10.0,20*10.0,10*50.0,10*100.0,40*200.0,&
@@ -240,7 +243,7 @@ call rluxgo(lux,in,k1,k2)
 do run=1,number_of_energies
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
   energy=int(Eion(run))
-  number_of_ions=nint(nJunoIons(run)*75)
+  number_of_ions=nint(nJunoIons(run)*99)
   write(206,*) "Number of ions:         ", number_of_ions
   write(206,*) "Initial energy:         ", energy, 'keV'
   write(206,*) "Trial number (RNG Seed):", trial
@@ -251,7 +254,8 @@ do run=1,number_of_energies
 allocate(angle(number_of_ions))
 call ranlux(angle,number_of_ions) !Calculate all the angles to be used here
 !********************** Reset Counters For New Ion Energy **********************
-
+!* Don't want to resent the counters for each energy, want to simulate all
+!* energies as a single ion flux.
 !************************ Ion Precipitation Begins Here ************************
   write(206,*) 'Starting Ion Precipitiaton: ', energy,'keV/u' !Double check eng
   flush(206)
@@ -486,6 +490,7 @@ call ranlux(angle,number_of_ions) !Calculate all the angles to be used here
   write(206,*)'Sum of total electrons foward+backward:',sum(electFwdA+electBwdA)
   write(206,*)'Sum of total electrons:                ',totalElect,sum(eCounts)
   write(206,*)'Max Depth:                             ',altitude(maxDpt)
+  flush(206)
 !****************** Write to screen some general information *******************
   NSIM=sum(collisions,dim=2)
   SIM=sum(collisions,dim=1)
@@ -514,6 +519,7 @@ call ranlux(angle,number_of_ions) !Calculate all the angles to be used here
   sec=mod(real(t4-t3)/clock_rate,60.0)
   write(206,*) 'Individual run elapsed real time = ',hrs,':',min,':',sec
   deallocate(angle)
+  close(206)
 end do !run=1,number_of_energies
 !********** Open output data files for each set of initial energies ************
 do i=1,nOutputFiles
@@ -523,7 +529,7 @@ do i=1,nOutputFiles
   open(unit=100+i,file=filename,status='unknown')
 end do
 !***************************** Write out to files ******************************
-norm=count*2e5 !Normalization condition to per ion per km
+norm=2*2e5 !Normalization condition to per ion per km
 totalHp=sum(totHp,dim=1)
 totalH2p=sum(totH2p,dim=1)
 pHp=sum(totHp,dim=2)
@@ -555,14 +561,11 @@ end do
 totO=sum(OxyVsEng,dim=1)
 write(104,H04) !Oxy vs energy header
 do i=1,nOxEngBins !Oxygen charge state distribution
-  if(oxEngBins(i)-(oxEngBinSize/2.0).gt.Eion(number_of_energies))goto 1001
   write(104,F03) oxEngBins(i)-(oxEngBinSize/2.0), &
                  (real(OxyVsEng(j,i))/real(totO(i)),j=1,nChS)
 end do
-1001 continue
 write(105,H05) !Stopping power header
 do i=1,nStopPowerEBins !Stopping power vs. ion energy
-  if(stopPowerEBins(i)-(delSP(i)/2.0).gt.Eion(number_of_energies))goto 1002
   write(105,F04) stopPowerEBins(i)-(delSP(i)/2.0), &
                  SPvsEng(i)/real(nSPions(i)**2), &
                  SigTotvsEng(i)/real(nSPions(i)), &
@@ -571,17 +574,34 @@ do i=1,nStopPowerEBins !Stopping power vs. ion energy
                  (SigTotvsEng(i)*dEvsEng(i))/(real(nSPions(i))**2), &
                  nSPions(i)
 end do
-1002 continue
+NSIM=sum(collisions,dim=2)
+SIM=sum(collisions,dim=1)
+write(106,H07) !Collisions header
 do i=1,8 !Total number of each type of collision
-  write(106,*) (collisions(i,j),j=1,5)
+  write(106,F06) Coll(i), (collisions(i,j),j=1,5),NSIM(i)
 end do
+write(106,*) '------------------------------------------------------------&
+              --------------------------'
+write(106,F06) 'Sum     ',SIM(1),SIM(2),SIM(3),SIM(4),SIM(5)
+write(106,*) ''
+write(106,H07) !Collisions percentage header
+do i=1,8 !Total percentage of each type of collision
+  write(106,F07) Coll(i), &
+  (real(collisions(i,j))/real(sum(collisions))*100.0,j=1,5),&
+  real(NSIM(i))/real(sum(NSIM))*100
+end do
+write(106,*) '------------------------------------------------------------&
+              --------------------------'
+write(106,F07) 'Sum     ',real(SIM(1))/real(sum(SIM))*100,&
+ real(SIM(2))/real(sum(SIM))*100,real(SIM(3))/real(sum(SIM))*100,&
+ real(SIM(4))/real(sum(SIM))*100,real(SIM(5))/real(sum(SIM))*100
 do i=1,nChS !Oxygen production
   write(106+i,*) "Alt [km] ", (HProc(k),k=1,nProc)
   do j=1,atmosLen
     write(106+i,F01) altitude(j),(real(oxygen(k,j,i))/norm,k=1,nProc)
   end do
 end do
-do i=1,5
+do i=1,3
   write(116+i,H06)
 end do
 do i=1,atmosLen !Oxygen production from charge exchange
@@ -609,11 +629,9 @@ do i=1,nOutputFiles
   close(100+i)
 end do
 call system_clock (t2,clock_rateTotal,clock_maxTotal) !Total elapsed time
-write(206,*) 'Total elapsed real time = ', real(t2-t1)/clock_rateTotal
 hrs=int(real(t2-t1)/clock_rate/3600.0)
 min=int(((real(t2-t1)/clock_rate)-hrs*3600)/60)
 sec=mod(real(t2-t1)/clock_rate,60.0)
-close(206)
 write(filename,"('./Output/Juno/PJ7_1/Elapsed_Times.dat')")
 1003 continue
 inquire(file=filename,opened=open)
