@@ -106,6 +106,7 @@ real*8 eEnergy,eAngle,eEnergyTmp
 real*8 eAngleSS,eEnergySS,eAngleDS(2),eEnergyDS(2)
 real*8 ProcessdE(nStopPowerEBins,36,10)
 real*8 nJunoIons(10) !Juno flux of ions, different for various passes
+real*8 IntegratedXRay(2,nChS) !1 is DE, 2 is CX
 real*8,dimension(6,9,13,ne) :: eProbFunc !Ejected electron probability function
 real*8,dimension(6,9,13,na) :: aProbFunc
 real*8,dimension(atmosLen,nE2strBins) :: prode2stF,prode2stB
@@ -244,7 +245,10 @@ call rluxgo(lux,in,k1,k2)
 do run=1,number_of_energies
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
   energy=int(Eion(run))
-  number_of_ions=nint(nJunoIons(run)*99)
+  number_of_ions=nint(nJunoIons(run)*1)!9)
+  write(206,*)
+  write(206,*)"----------------------------------------NEW ENERGY--------------&
+                ---------------------------"
   write(206,*) "Number of ions:         ", number_of_ions
   write(206,*) "Initial energy:         ", energy, 'keV'
   write(206,*) "Trial number (RNG Seed):", trial
@@ -601,6 +605,24 @@ do i=1,nChS !Oxygen production
     write(106+i,F01) altitude(j),(real(oxygen(k,j,i))/norm,k=1,nProc)
   end do
 end do
+!* Get the altitude integrated X-Ray production
+do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
+  do j=1,nChS
+    IntegratedXRay(1,j)=IntegratedXRay(1,j)+&
+      real(oxygen(27,i,j)+oxygen(29,i,j)+oxygen(32,i,j))*altDelta(i) !DE
+    IntegratedXRay(2,j)=IntegratedXRay(2,j)+&
+      real(oxygen(19,i,j)+oxygen(25,i,j)+oxygen(30,i,j))*altDelta(i) !CX
+  end do
+end do
+do i=1,2 !Loop through DE and CX files
+  write(117+i,N01) !X-Ray Note
+  write(117+i,*) !Extra space
+  write(117+i,H08) !Altitude integrated X-ray production header
+  write(117+i,H09) !Charge state header
+  write(117+i,F05) altDelta(1)/1e5,(IntegratedXRay(1,j)/norm,j=1,nChS) !DE
+  write(117+i,*) !Extra space
+  write(117+i,H10) !X-Ray production vs. altitude header
+end do
 do i=1,3
   write(116+i,H06)
 end do
@@ -632,11 +654,14 @@ call system_clock (t2,clock_rateTotal,clock_maxTotal) !Total elapsed time
 hrs=int(real(t2-t1)/clock_rate/3600.0)
 min=int(((real(t2-t1)/clock_rate)-hrs*3600)/60)
 sec=mod(real(t2-t1)/clock_rate,60.0)
+write(206,*) '-----------------------------------------------------------------&
+              --------------------------'
+write(206,*) 'Total elapsed real time = ',hrs,':',min,':',sec
+close(206)
 write(filename,"('./Output/Juno/PJ7_1/Elapsed_Times.dat')")
 ! 1003 continue
 ! inquire(file=filename,opened=open)
 ! if(open)goto 1003
-close(206)
 open(unit=207,file=filename,status='unknown',access='append',action='write')
 write(207,*) trial,hrs,':',min,':',sec
 close(207)
