@@ -561,7 +561,7 @@ do run=9,9!1,number_of_energies
       write(106+i,F01) altitude(j),(real(oxygen(k,j,i))/norm,k=1,nProc)
     end do
   end do
-  do i=1,5
+  do i=1,3
     write(116+i,H06)
   end do
   do i=1,atmosLen !Oxygen production from charge exchange
