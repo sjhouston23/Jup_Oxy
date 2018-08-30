@@ -570,12 +570,12 @@ do run=2,number_of_energies
   do i=1,atmosLen !Oxygen production from charge exchange
     write(117,F05) altitude(i),(real(oxygenCX(i,j))/norm,j=1,nChS)
   end do
-  do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
-    write(118,F05) altitude(i),& !X-Ray production from direct excitation
-      (real(oxygen(27,i,j)+oxygen(29,i,j)+oxygen(32,i,j))/norm,j=1,nChs)
-    write(119,F05) altitude(i),& !X-Ray production from charge exchange
-      (real(oxygen(19,i,j)+oxygen(25,i,j)+oxygen(30,i,j))/norm,j=1,nChs)
-  end do
+ ! do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
+  !  write(118,F05) altitude(i),& !X-Ray production from direct excitation
+  !    (real(oxygen(27,i,j)+oxygen(29,i,j)+oxygen(32,i,j))/norm,j=1,nChs)
+  !  write(119,F05) altitude(i),& !X-Ray production from charge exchange
+  !    (real(oxygen(19,i,j)+oxygen(25,i,j)+oxygen(30,i,j))/norm,j=1,nChs)
+ ! end do
 !***************************** Secondary Electrons *****************************
   do i=1,atmosLen
     do j=1,nE2strBins
