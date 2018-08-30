@@ -231,7 +231,6 @@ end do
 
 call get_command_argument(1,arg)
 read(arg,'(I100)') trial
-call sleep(trial/10000)
 write(filename,'("./Output/Juno/PJ7_1/Seeds.dat")')
 open(unit=205,file=filename,status='unknown',access='append',action='write')
 write(205,*) trial
@@ -659,9 +658,6 @@ write(206,*) '-----------------------------------------------------------------&
 write(206,*) 'Total elapsed real time = ',hrs,':',min,':',sec
 close(206)
 write(filename,"('./Output/Juno/PJ7_1/Elapsed_Times.dat')")
-! 1003 continue
-! inquire(file=filename,opened=open)
-! if(open)goto 1003
 open(unit=207,file=filename,status='unknown',access='append',action='write')
 write(207,*) trial,hrs,':',min,':',sec
 close(207)
