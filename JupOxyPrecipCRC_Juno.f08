@@ -245,7 +245,7 @@ call rluxgo(lux,in,k1,k2)
 do run=1,number_of_energies
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
   energy=int(Eion(run))
-  number_of_ions=nint(nJunoIons(run)*1)!9)
+  number_of_ions=nint(nJunoIons(run)*99)
   write(206,*)
   write(206,*)"----------------------------------------NEW ENERGY--------------&
                 ---------------------------"
