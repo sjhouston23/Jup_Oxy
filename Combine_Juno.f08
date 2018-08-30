@@ -249,9 +249,9 @@ do i=1,atmosLen !Oxygen production from charge exchange
   write(217,F05) altitude(i),(CoxygenCX(i,j)/real(nTrials),j=1,nChS)
 end do
 !****************************** X-Ray Production *******************************
-write(filename,'("./Output/Juno/PJ7_1/XRay_DE_Comb.dat")') energy
+write(filename,'("./Output/Juno/PJ7_1/XRay_DE_Comb.dat")')
 open(unit=300,file=trim(filename),status='unknown') !Open X-Ray direct excite
-write(filename,'("./Output/Juno/PJ7_1/XRay_CX_Comb.dat")') energy
+write(filename,'("./Output/Juno/PJ7_1/XRay_CX_Comb.dat")')
 open(unit=301,file=trim(filename),status='unknown') !Open X-Ray charge exchange
 altDelta=2.0e5 !2 km = 200,000 cm
 write(300,N01) !X-Ray DE Note
