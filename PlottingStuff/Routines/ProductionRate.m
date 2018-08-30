@@ -1,7 +1,7 @@
 function ProductionRate(Parent1, XMatrix1, Y1)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Example:
-%   CXProductionRate(figure,XRayCXComb{:,2:11},JunoAtmosphere2kmFlip{:,3})
+%   CXProductionRate(figure,XRayCXComb{:,2:11},JunoAtmosphere2kmFlip{:,2})
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %CREATEAXES(Parent1, YMatrix1, JunoAtmosphere2kmFlip1)
