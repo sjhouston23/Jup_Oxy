@@ -12,7 +12,7 @@
 *.eps
 *.tex
 *.png
-*.shq
+*.sh
 *~
 Moab*
 oxy
