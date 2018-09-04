@@ -198,8 +198,10 @@ do run=1,number_of_energies
   write(202,*) trim(Hp2Header)
   write(203,H03) !H2* header
   do i=1,atmosLen !Ionization/Excitation vs. altitude
-    write(201,F01) altitude(i),(CtotHp(j,i)/real(nTrials),j=1,31),CtotalHp(i)
-    write(202,F01) altitude(i),(CtotH2p(j,i)/real(nTrials),j=1,11),CtotalH2p(i)
+    write(201,F01) altitude(i),(CtotHp(j,i)/real(nTrials),j=1,31),&
+      CtotalHp(i)/real(nTrials)
+    write(202,F01) altitude(i),(CtotH2p(j,i)/real(nTrials),j=1,11),&
+      CtotalH2p(i)/real(nTrials)
     write(203,F02) altitude(i),CH2Ex(i)/real(nTrials)
   end do
   write(204,H04) !Oxy vs energy header
