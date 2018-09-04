@@ -16,7 +16,7 @@ integer energy,atmosLen,run
 
 parameter(nOutputFiles=19,MaxnTrials=1000,atmosLen=1544,nProc=36,nChS=10)
 parameter(nOxEngBins=5000,nStopPowerEBins=295,nE2strBins=260,MaxnLines=100000)
-parameter(number_of_energies=12)
+parameter(number_of_energies=10)
 
 integer err,start,nerr !Error upon opening files
 integer trial(MaxnTrials),nLines(nOutputFiles) !Number of trials/lines in a file
@@ -61,7 +61,7 @@ do run=1,number_of_energies
   CnSPions=0;Ccollisions=0;Coxygen=0.0;CoxygenCX=0.0;CdNvsEng=0.0
   CSigdEvsEng=0.0;start=1;nerr=0;CcollSUM=0;CcollPerc=0.0;CcollPSUM=0
 !********** Open output data files for each set of initial energies ************
-  energy=Eion(run)
+  energy=nint(Eion(run))
   write(filename,'("./Output/Juno/",I0,"keV/Elapsed_Times.dat")') energy
   open(unit=100,file=filename,status='old')
   do i=1,MaxnTrials
