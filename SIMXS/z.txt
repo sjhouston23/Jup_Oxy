@@ -1,0 +1,24 @@
+#!/bin/ksh
+
+fn=dcdpex.txt
+
+grep "^  DC+DPEX &" ./draft-v9.txt | \
+   sed -e 's+.&++g' -e 's+$\\ddagger$ ++g' -e 's+$\\dagger$ ++g' -e 's+* ++g' -e 's+ \\\\++g' -e 's+& ++g' -e 's+  *+ +g' | \
+   cut -d " " -f 1,3,5,7,9,11,13 |&
+
+(( cnt = 2 ))
+while read -p Line; do
+   if [ cnt -eq 2 ]
+   then
+	printf "%-9s" Energy 1 10 50 75 100 200 500 1000 2000 5000 10000 25000
+	print
+   fi
+   read -p Line2
+   printf "%-9s" O${cnt}+ $Line $Line2
+   print
+   (( cnt++ ))
+done > ~/Desktop/SIMXS/${fn}
+printf ${fn}
+print
+cat ~/Desktop/SIMXS/${fn}
+

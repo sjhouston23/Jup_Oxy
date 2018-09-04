@@ -3,3 +3,4 @@ Atmosphere/Input/JunoAtmosphere_2km.dat
 NewElectronDist/ProbDistFunc/eprobfunc.dat
 NewElectronDist/ProbDistFunc/aprobfunc.dat
 SIMXSInterp/*.dat
+SIMXS/*.txt
