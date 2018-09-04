@@ -57,7 +57,7 @@ set(loglog3(10),'DisplayName','O^{8+}','Color',[0 0 0]);
 ylabel('H_2 Density [cm^{-3}]');
 
 % Create xlabel
-xlabel('Production Rate [cm^{-3} s^{-1}]');
+xlabel('Production Rate [photons cm^{-3} s^{-1}]');
 
 % Uncomment the following line to preserve the X-limits of the axes
  xlim(axes1,[0.1e-06 0.01]);
