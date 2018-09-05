@@ -214,5 +214,5 @@ end do
 1001 format(39X,A10,1X,A12)
 1002 format(5X,ES12.9,1X,ES13.10)
 1003 format(3x,A11,2x,A15,2x,A17,2x,A16)
-1004 format(F11.3,2x,F15.3,2x,F17.3,2x,F16.3)
+1004 format(F11.3,1x,F15.4,2x,F17.2,2x,F16.3)
 end program
