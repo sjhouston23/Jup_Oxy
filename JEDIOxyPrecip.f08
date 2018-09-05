@@ -62,25 +62,21 @@ write(version,'("PJ7-1")') !Filename of a JEDI spectrum (.d2s file)
 write(filename,'("./JunoData/Spectra/",A,".d2s")') trim(version)
 open(unit=100,file=trim(filename),status='old')
 write(*,*)
-write(*,1000) 'File:','Date:','Time:' !Write out general information
 do i=1,25 !Reading in the data measured by JEDI
   if(i.le.2.or.i.ge.4.and.i.le.15)read(100,*)
   if(i.eq.3)read(100,1001) date, time !Read the date and time of the flyby
-  if(i.eq.3)write(*,*) trim(version),'  ',date,'  ',time !Write to screen
+  if(i.eq.3)write(*,1005) trim(version),date,time !Write to screen
   if(i.ge.16)read(100,1002) Jenergy(i-15),Jintensity(i-15)
 end do
 write(*,*)
 write(*,1003)'Energy Bin:','JEDI Intensity:','Energy Bin Width:',&
              'Normalized Flux:' !Write out general information
 do run=1,number_of_energies !Convert to [counts/cm^2/s]
-!* The first 3 energy bins include both sulfur and oxygen. I'm assuming a 1:2
-!* ratio of sulfur:oxygen (from SO_2)
+!* The first 3 energy bins include both sulfur and oxygen. I'm assuming a 2:1
+!* ratio of oxygen:sulfur (from SO_2)
   if(run.le.3)Jflux(run)=Jintensity(run)*2*pi*Jebins(run)*2/3
   if(run.ge.4)Jflux(run)=Jintensity(run)*2*pi*Jebins(run)
   write(*,1004)Jenergy(run),Jintensity(run),Jebins(run),Jflux(run)
-end do
-do i=1,number_of_energies
-  write(*,*) Jflux(i)/Jflux(number_of_energies)
 end do
 close(100) !Close JEDI measurement file
 !********************************* Initialize **********************************
@@ -214,7 +210,7 @@ do i=1,nOutputFiles !Close the combine output files
   close(200+i)
 end do
 
-1000 format(1x,A5,10x,A5,7x,A5)
+1005 format('FILE: ',A5,'.d2s',/,'DATE: ',A10,/,'TIME: ',A12)
 1001 format(39X,A10,1X,A12)
 1002 format(5X,ES12.9,1X,ES13.10)
 1003 format(3x,A11,2x,A15,2x,A17,2x,A16)
