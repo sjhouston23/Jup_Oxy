@@ -1,4 +1,4 @@
-program JEDIInterpolator
+subroutine JEDIInterpolator(version,Iflux)
 !*******************************************************************************
 !* Created by Stephen J. Houston 9.5.18
 !*******************************************************************************
@@ -12,6 +12,9 @@ program JEDIInterpolator
 implicit real*8(a-h,o-z)
 
 !*******************************************************************************
+character(len=10),intent(in) :: version
+real*8,dimension(27),intent(out) :: Iflux
+
 parameter(nJebins=10,nSteps=3) !Number of JEDI energy bins
 !nSteps is the number of energy data points you want in between the JEDI points
 
@@ -21,11 +24,11 @@ real*8,dimension(nJebins) :: Jenergy,Jintensity,Jebins,Jflux
 !*   Jintensity - JEDI ion flux [c/s/ster/cm^2/keV]
 !*   Jebins - Size of JEDI energy bins [keV]
 !*   Jflux - Jintensity values converted to [counts/cm^2/s]
-character(len=10) date,version
+character(len=10) date!,version
 character(len=12) time
 character(len=100) filename
 !* Interpolated variables
-real*8,allocatable,dimension(:) ::Ienergy,Iintensity,Iebins,Iflux
+real*8,allocatable,dimension(:) ::Ienergy,Iintensity,Iebins
 
 !****************************** Data Declaration *******************************
 !* Width of JEDI energy bins: (May eventually need to be adjusted)
@@ -33,12 +36,12 @@ data Jebins/66.0,71.0,105.0,216.0,346.0,251.0,300.0,880.0,2280.0,5340.0/
 !********************************* Initialize **********************************
 !nInterp includes the JEDI energy data points as well
 nInterp=nJebins+(nJebins-1)*nSteps
-allocate(Ienergy(nInterp),Iintensity(nInterp),Iebins(nInterp),Iflux(nInterp))
+allocate(Ienergy(nInterp),Iintensity(nInterp),Iebins(nInterp))!,Iflux(nInterp))
 pi=4.0d0*atan(1.0d0)
 Jenergy=0.0;Jintensity=0.0;Jbins=0.0;Jflux=0.0
 Ienergy=0.0;Iintensity=0.0;Ibins=0.0;Iflux=0.0
 !*************************** Open JEDI Ion Spectrum ****************************
-write(version,'("v1")') !Filename of a JEDI spectrum (.d2s file)
+!write(version,'("v1")') !Filename of a JEDI spectrum (.d2s file)
 write(filename,'("./JunoData/Spectra/",A,".d2s")') trim(version)
 open(unit=100,file=trim(filename),status='old')
 write(*,*)
@@ -114,4 +117,4 @@ end do
 1005 format(1x,F7.2,',',1x,F8.5)
 1006 format(37(I3,'keV',1x))
 
-end program
+end subroutine
