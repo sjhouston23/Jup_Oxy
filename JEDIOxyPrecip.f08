@@ -13,13 +13,28 @@ use, intrinsic :: ISO_FORTRAN_ENV !Used for kind=int64
 use formatting !Used for formatting.f08
 implicit real*8(a-h,o-z) !i,j,k,l,m,n are assumed to be integers
 
+!******************************* Interface Block *******************************
+!* Interface block is required for the passing of allocatable arrays between a
+!* routine and a subroutine.
+! interface
+!   subroutine JEDIInterpolator(version,Iflux)
+!     character(len=10),intent(in) :: version
+!     real*8,allocatable,dimension(:),intent(out) :: Iflux
+!     parameter(nJebins=10,nSteps=3)
+!     real*8,dimension(nJebins) :: Jenergy,Jintensity,Jebins,Jflux
+!     character(len=10) date,version
+!     character(len=12) time
+!     character(len=100) filename
+!     real*8,allocatable,dimension(:) ::Ienergy,Iintensity,Iebins
+!   end subroutine
+! end interface
 !*******************************************************************************
 integer energy,atmosLen,run
 
 parameter(atmosLen=1544,nProc=36,nChS=10) !Atmosphere, processes, charge states
 parameter(nE2strBins=260) !Number of 2-stream energy bins
 parameter(nOutputFiles=15) !Number of data files from ion precip code
-parameter(number_of_energies=10) !Number of JEDI energy bins
+parameter(number_of_energies=27) !Number of JEDI energy bins
 
 real*8 Eion(number_of_energies) !Ion energies
 real*8,dimension(atmosLen) :: altitude !Altitude array
@@ -28,7 +43,8 @@ real*8,dimension(number_of_energies,atmosLen,nProc) :: Hp,H2p
 real*8,dimension(number_of_energies,atmosLen,nProc,nChS) :: oxygen
 real*8,dimension(number_of_energies,atmosLen,nE2strBins) :: prode2stF,prode2stB
 !* JEDI variables
-real*8,dimension(number_of_energies) :: Jenergy,Jintensity,Jebins,Jflux
+real*8,dimension(number_of_energies) :: Jflux
+!real*8,dimension(number_of_energies) :: Jenergy,Jintensity,Jebins,Jflux
 !*   Jenergy - JEDI energy bin [keV]
 !*   Jintensity - JEDI ion flux [c/s/ster/cm^2/keV]
 !*   Jebins - Size of JEDI energy bins [keV]
@@ -48,37 +64,41 @@ character(len=1000) HpHeader,Hp2Header
 
 !****************************** Data Declaration *******************************
 !* Initial ion enegy input:
-data Eion/10.625,15.017,20.225,29.783,46.653,59.770,77.522,120.647,218.125,&
-          456.250/ !Juno energy bins from JEDI.
+!data Eion/10.625,15.017,20.225,29.783,46.653,59.770,77.522,120.647,218.125,&
+!          456.250/ !Juno energy bins from JEDI.
+data Eion/11.619,12.656,13.786,16.177,17.427,18.774,22.280,24.543,27.036,&
+33.319,37.276,41.702,49.634,52.806,56.180,63.785,68.070,72.642,86.586,96.710,&
+108.018,139.899,162.223,188.108,262.319,315.467,379.384/
 data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Neg','Oxy0_','Oxy1_',&
 'Oxy2_','Oxy3_','Oxy4_','Oxy5_','Oxy6_','Oxy7_','Oxy8_','2Str_Elect_Fwd',&
 '2Str_Elect_Bwd'/
 !* Width of JEDI energy bins: (May eventually need to be adjusted)
-data Jebins/66.0,71.0,105.0,216.0,346.0,251.0,300.0,880.0,2280.0,5340.0/
+!data Jebins/66.0,71.0,105.0,216.0,346.0,251.0,300.0,880.0,2280.0,5340.0/
 !********************************* Initialize **********************************
-pi=4.0d0*atan(1.0d0);Jenergy=0.0;Jintensity=0.0;Jbins=0.0;Jflux=0.0
+pi=4.0d0*atan(1.0d0);Jflux=0.0
 !*************************** Open JEDI Ion Spectrum ****************************
 write(version,'("PJ7-1")') !Filename of a JEDI spectrum (.d2s file)
-write(filename,'("./JunoData/Spectra/",A,".d2s")') trim(version)
-open(unit=100,file=trim(filename),status='old')
-write(*,*)
-do i=1,25 !Reading in the data measured by JEDI
-  if(i.le.2.or.i.ge.4.and.i.le.15)read(100,*)
-  if(i.eq.3)read(100,1001) date, time !Read the date and time of the flyby
-  if(i.eq.3)write(*,1005) trim(version),date,time !Write to screen
-  if(i.ge.16)read(100,1002) Jenergy(i-15),Jintensity(i-15)
-end do
-write(*,*)
-write(*,1003)'Energy Bin:','JEDI Intensity:','Energy Bin Width:',&
-             'Normalized Flux:' !Write out general information
-do run=1,number_of_energies !Convert to [counts/cm^2/s]
-!* The first 3 energy bins include both sulfur and oxygen. I'm assuming a 2:1
-!* ratio of oxygen:sulfur (from SO_2)
-  if(run.le.3)Jflux(run)=Jintensity(run)*2*pi*Jebins(run)*2/3
-  if(run.ge.4)Jflux(run)=Jintensity(run)*2*pi*Jebins(run)
-  write(*,1004)Jenergy(run),Jintensity(run),Jebins(run),Jflux(run)
-end do
-close(100) !Close JEDI measurement file
+call JEDIInterpolator(version,Jflux)
+! write(filename,'("./JunoData/Spectra/",A,".d2s")') trim(version)
+! open(unit=100,file=trim(filename),status='old')
+! write(*,*)
+! do i=1,25 !Reading in the data measured by JEDI
+!   if(i.le.2.or.i.ge.4.and.i.le.15)read(100,*)
+!   if(i.eq.3)read(100,1001) date, time !Read the date and time of the flyby
+!   if(i.eq.3)write(*,1005) trim(version),date,time !Write to screen
+!   if(i.ge.16)read(100,1002) Jenergy(i-15),Jintensity(i-15)
+! end do
+! write(*,*)
+! write(*,1003)'Energy Bin:','JEDI Intensity:','Energy Bin Width:',&
+!              'Normalized Flux:' !Write out general information
+! do run=1,number_of_energies !Convert to [counts/cm^2/s]
+! !* The first 3 energy bins include both sulfur and oxygen. I'm assuming a 2:1
+! !* ratio of oxygen:sulfur (from SO_2)
+!   if(run.le.3)Jflux(run)=Jintensity(run)*2*pi*Jebins(run)*2/3
+!   if(run.ge.4)Jflux(run)=Jintensity(run)*2*pi*Jebins(run)
+!   write(*,1004)Jenergy(run),Jintensity(run),Jebins(run),Jflux(run)
+! end do
+! close(100) !Close JEDI measurement file
 !********************************* Initialize **********************************
 energy=0;altitude=0.0;Hp=0.0;totalHp=0.0;H2p=0.0;totalH2p=0.0;H2Ex=0.0
 oxygen=0.0;prode2stF=0.0;prode2stB=0.0
