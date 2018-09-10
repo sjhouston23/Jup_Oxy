@@ -30,7 +30,7 @@ subroutine atmos_driver!(TotalCD,Altitude,Delta)
 implicit none
 
 !*****************INTERFACE BLOCK FOR ALLOCATABLE ARRAYS*****************
-!You must add an interface block for anny allocatable arrays that you want to
+!You must add an interface block for any allocatable arrays that you want to
 !pass from one routine/subroutine to another.
 
 interface
