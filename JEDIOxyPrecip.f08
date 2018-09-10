@@ -76,29 +76,14 @@ data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Neg','Oxy0_','Oxy1_',&
 !data Jebins/66.0,71.0,105.0,216.0,346.0,251.0,300.0,880.0,2280.0,5340.0/
 !********************************* Initialize **********************************
 pi=4.0d0*atan(1.0d0);Jflux=0.0
-!*************************** Open JEDI Ion Spectrum ****************************
-write(version,'("v1")') !Filename of a JEDI spectrum (.d2s file)
+!*************************** Call JEDI Interpolator ****************************
+write(*,*)
+write(*,*) "What is the name of the JEDI ion spectrum file you wish to open?"
+write(*,*) "Don't include the extension in the file name (e.g. if you want to &
+ analyze PJ7-1.ds2, type PJ7-1)."
+read(*,*) version
+!write(version,'("v1")') !Filename of a JEDI spectrum (.d2s file)
 call JEDIInterpolator(version,Jflux)
-! write(filename,'("./JunoData/Spectra/",A,".d2s")') trim(version)
-! open(unit=100,file=trim(filename),status='old')
-! write(*,*)
-! do i=1,25 !Reading in the data measured by JEDI
-!   if(i.le.2.or.i.ge.4.and.i.le.15)read(100,*)
-!   if(i.eq.3)read(100,1001) date, time !Read the date and time of the flyby
-!   if(i.eq.3)write(*,1005) trim(version),date,time !Write to screen
-!   if(i.ge.16)read(100,1002) Jenergy(i-15),Jintensity(i-15)
-! end do
-! write(*,*)
-! write(*,1003)'Energy Bin:','JEDI Intensity:','Energy Bin Width:',&
-!              'Normalized Flux:' !Write out general information
-! do run=1,number_of_energies !Convert to [counts/cm^2/s]
-! !* The first 3 energy bins include both sulfur and oxygen. I'm assuming a 2:1
-! !* ratio of oxygen:sulfur (from SO_2)
-!   if(run.le.3)Jflux(run)=Jintensity(run)*2*pi*Jebins(run)*2/3
-!   if(run.ge.4)Jflux(run)=Jintensity(run)*2*pi*Jebins(run)
-!   write(*,1004)Jenergy(run),Jintensity(run),Jebins(run),Jflux(run)
-! end do
-! close(100) !Close JEDI measurement file
 !********************************* Initialize **********************************
 energy=0;altitude=0.0;Hp=0.0;totalHp=0.0;H2p=0.0;totalH2p=0.0;H2Ex=0.0
 oxygen=0.0;prode2stF=0.0;prode2stB=0.0
