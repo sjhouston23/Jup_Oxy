@@ -22,7 +22,7 @@ integer energy,atmosLen,run
 parameter(atmosLen=1544,nProc=36,nChS=10) !Atmosphere, processes, charge states
 parameter(nE2strBins=260) !Number of 2-stream energy bins
 parameter(nOutputFiles=15) !Number of data files from ion precip code
-parameter(number_of_energies=27) !Number of interpolated JEDI energy bins
+parameter(number_of_energies=37) !Number of interpolated JEDI energy bins
 
 real*8 Eion(number_of_energies) !Ion energies
 real*8,dimension(atmosLen) :: altitude !Altitude array
@@ -32,7 +32,6 @@ real*8,dimension(number_of_energies,atmosLen,nProc,nChS) :: oxygen
 real*8,dimension(number_of_energies,atmosLen,nE2strBins) :: prode2stF,prode2stB
 !* JEDI variables
 real*8,dimension(number_of_energies) :: Jflux
-!real*8,dimension(number_of_energies) :: Jenergy,Jintensity,Jebins,Jflux
 !*   Jenergy - JEDI energy bin [keV]
 !*   Jintensity - JEDI ion flux [c/s/ster/cm^2/keV]
 !*   Jebins - Size of JEDI energy bins [keV]
@@ -53,10 +52,11 @@ character(len=1000) HpHeader,Hp2Header
 !****************************** Data Declaration *******************************
 !* Initial ion enegy input:
 !data Eion/10.625,15.017,20.225,29.783,46.653,59.770,77.522,120.647,218.125,&
-!          456.250/ !Juno energy bins from JEDI.
-data Eion/11.619,12.656,13.786,16.177,17.427,18.774,22.280,24.543,27.036,&
-33.319,37.276,41.702,49.634,52.806,56.180,63.785,68.070,72.642,86.586,96.710,&
-108.018,139.899,162.223,188.108,262.319,315.467,379.384/
+!          456.250/ !Original Juno energy bins from JEDI.
+data Eion/10.625,11.619,12.656,13.786,15.017,16.177,17.427,18.774,20.225,&
+22.280,24.543,27.036,29.783,33.319,37.276,41.702,46.653,49.634,52.806,56.180,&
+59.770,63.785,68.070,72.642,77.522,86.586,96.710,108.018,120.647,139.899,&
+162.223,188.108,218.125,262.319,315.467,379.384,456.250/ !Interpolated energies
 data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Neg','Oxy0_','Oxy1_',&
 'Oxy2_','Oxy3_','Oxy4_','Oxy5_','Oxy6_','Oxy7_','Oxy8_','2Str_Elect_Fwd',&
 '2Str_Elect_Bwd'/
