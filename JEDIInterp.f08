@@ -24,7 +24,7 @@ real*8,dimension(nJebins) :: Jenergy,Jintensity,Jebins,Jflux
 !*   Jintensity - JEDI ion flux [c/s/ster/cm^2/keV]
 !*   Jebins - Size of JEDI energy bins [keV]
 !*   Jflux - Jintensity values converted to [counts/cm^2/s]
-character(len=10) date!,version
+character(len=10) date
 character(len=12) time
 character(len=100) filename
 !* Interpolated variables

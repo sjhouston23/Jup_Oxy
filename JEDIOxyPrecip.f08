@@ -7,34 +7,22 @@ program JEDIOxyPrecip
 !* by normalized (1 input ion/cm^2/s), previously calculated results that
 !* correspond to the JEDI energy bins ~(11,15,20,30,47,60,78,121,218,456 keV).
 !* Some of the higher energy JEDI bins overlap - I treat them as if they don't.
+!* To change the number of interpolated data points, one would need to change
+!* the variables number_of_energies, the Eion data points, and then go into
+!* the JEDIInterpolator subroutine and make changes.
 !*******************************************************************************
 
 use, intrinsic :: ISO_FORTRAN_ENV !Used for kind=int64
 use formatting !Used for formatting.f08
 implicit real*8(a-h,o-z) !i,j,k,l,m,n are assumed to be integers
 
-!******************************* Interface Block *******************************
-!* Interface block is required for the passing of allocatable arrays between a
-!* routine and a subroutine.
-! interface
-!   subroutine JEDIInterpolator(version,Iflux)
-!     character(len=10),intent(in) :: version
-!     real*8,allocatable,dimension(:),intent(out) :: Iflux
-!     parameter(nJebins=10,nSteps=3)
-!     real*8,dimension(nJebins) :: Jenergy,Jintensity,Jebins,Jflux
-!     character(len=10) date,version
-!     character(len=12) time
-!     character(len=100) filename
-!     real*8,allocatable,dimension(:) ::Ienergy,Iintensity,Iebins
-!   end subroutine
-! end interface
 !*******************************************************************************
 integer energy,atmosLen,run
 
 parameter(atmosLen=1544,nProc=36,nChS=10) !Atmosphere, processes, charge states
 parameter(nE2strBins=260) !Number of 2-stream energy bins
 parameter(nOutputFiles=15) !Number of data files from ion precip code
-parameter(number_of_energies=27) !Number of JEDI energy bins
+parameter(number_of_energies=27) !Number of interpolated JEDI energy bins
 
 real*8 Eion(number_of_energies) !Ion energies
 real*8,dimension(atmosLen) :: altitude !Altitude array
