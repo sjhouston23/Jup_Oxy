@@ -32,10 +32,7 @@ real*8,dimension(number_of_energies,atmosLen,nProc,nChS) :: oxygen
 real*8,dimension(number_of_energies,atmosLen,nE2strBins) :: prode2stF,prode2stB
 !* JEDI variables
 real*8,dimension(number_of_energies) :: Jflux
-!*   Jenergy - JEDI energy bin [keV]
-!*   Jintensity - JEDI ion flux [c/s/ster/cm^2/keV]
-!*   Jebins - Size of JEDI energy bins [keV]
-!*   Jflux - Jintensity values converted to [counts/cm^2/s]
+!*   Jflux - JEDI measured flux intensities converted to [counts/cm^2/s]
 
 !Same as previous variables except has a leading "J"
 real*8 IntegratedPhot(2,nChS) !1 is DE, 2 is CX, integrated photon production
@@ -59,7 +56,7 @@ data Eion/10.625,11.619,12.656,13.786,15.017,16.177,17.427,18.774,20.225,&
 162.223,188.108,218.125,262.319,315.467,379.384,456.250/ !Interpolated energies
 data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Neg','Oxy0_','Oxy1_',&
 'Oxy2_','Oxy3_','Oxy4_','Oxy5_','Oxy6_','Oxy7_','Oxy8_','2Str_Elect_Fwd',&
-'2Str_Elect_Bwd'/
+'2Str_Elect_Bwd'/ !Filenames that are read in from JupOxyPrecip code
 !* Width of JEDI energy bins: (May eventually need to be adjusted)
 !data Jebins/66.0,71.0,105.0,216.0,346.0,251.0,300.0,880.0,2280.0,5340.0/
 !********************************* Initialize **********************************
@@ -210,9 +207,4 @@ do i=1,nOutputFiles !Close the combine output files
   close(200+i)
 end do
 
-1005 format('FILE: ',A5,'.d2s',/,'DATE: ',A10,/,'TIME: ',A12)
-1001 format(39X,A10,1X,A12)
-1002 format(5X,ES12.9,1X,ES13.10)
-1003 format(3x,A11,2x,A15,2x,A17,2x,A16)
-1004 format(F11.3,1x,F15.4,2x,F17.2,2x,F16.3)
 end program
