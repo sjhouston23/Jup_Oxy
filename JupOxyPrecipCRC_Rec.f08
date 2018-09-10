@@ -61,7 +61,7 @@ real*8 oxEngBinSize !Size of oxygen bins
 real*8 stopPowerEBinSize !Size of stopping power bins
 real*8 mass !Mass of species (oxygen=16) used in energy loss equation
 
-parameter(number_of_energies=12,atmosLen=1544,nE2strBins=260,nProc=36,nChS=10)
+parameter(number_of_energies=27,atmosLen=1544,nE2strBins=260,nProc=36,nChS=10)
 parameter(ne=2600,na=1800) !Number of electron energy and angle bins
 parameter(k1=0,k2=0,lux=3) !lux set to 3 for optimal randomness and timeliness
 parameter(nOxEngBins=5000,oxEngBinSize=5.0,mass=16.0) !Oxygen binning/mass
@@ -132,8 +132,13 @@ logical open
 
 !****************************** Data Declaration *******************************
 !* Initial ion enegy input:
-data Eion/1.0,10.0,50.0,75.0,100.0,200.0,500.0,1000.0,2000.0,5000.0,10000.0,&
-          25000.0/
+!data Eion/1.0,10.0,50.0,75.0,100.0,200.0,500.0,1000.0,2000.0,5000.0,10000.0,&
+!          25000.0/
+!data Eion/10.625,15.017,20.225,29.783,46.653,59.770,77.522,120.647,218.125,&
+!          456.250/ !Juno energy bins from JEDI.
+data Eion/11.619,12.656,13.786,16.177,17.427,18.774,22.280,24.543,27.036,&
+33.319,37.276,41.702,49.634,52.806,56.180,63.785,68.070,72.642,86.586,96.710,&
+108.018,139.899,162.223,188.108,262.319,315.467,379.384/
 !dE for each 2-Stream energy bin. Must match two stream code binning
 data del/20*0.5,70*1.0,10*2.0,20*5.0,10*10.0,20*10.0,10*50.0,10*100.0,40*200.0,&
          10*400,10*1000,10*2000,10*5000,10*10000.0/
@@ -218,7 +223,7 @@ end do
 !* 1=1, 2=10, 3=50, 4=75, 5=100, 6=200, 7=500, 8=1000, 9=2000, 10=5000,
 !* 11=10000, 12=25000
 !*******************************************************************************
-number_of_ions=50
+number_of_ions=100
 call get_command_argument(1,arg)
 read(arg,'(I100)') trial
 !*************************** Random Number Generator ***************************
@@ -226,14 +231,14 @@ read(arg,'(I100)') trial
 in=trial !RNG seed
 call rluxgo(lux,in,k1,k2)
 !********************************** Begin Run **********************************
-do run=2,number_of_energies
+do run=1,number_of_energies
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
-  energy=int(Eion(run))
-  write(filename,'("./Output/",I0,"keV/Seeds.dat")') energy
+  energy=nint(Eion(run))
+  write(filename,'("./Output/Juno/",I0,"keV/Seeds.dat")') energy
   open(unit=205,file=filename,status='unknown',access='append',action='write')
   write(205,*) trial
   close(205)
-  write(filename,'("./Output/",I0,"keV/Overview",I0,".dat")') energy,trial
+  write(filename,'("./Output/Juno/",I0,"keV/Overview",I0,".dat")') energy,trial
   open(unit=206,file=filename,status='unknown')
   write(206,*) "Number of ions:         ", number_of_ions
   write(206,*) "Initial energy:         ", energy, 'keV'
@@ -486,7 +491,7 @@ do run=2,number_of_energies
   write(206,*)'Max Depth:                             ',altitude(maxDpt)
 !********** Open output data files for each set of initial energies ************
   do i=1,nOutputFiles
-    write(filename,'("./Output/",I0,"keV/",A,I0,".dat")') &
+    write(filename,'("./Output/Juno/",I0,"keV/",A,I0,".dat")') &
           energy,trim(filenames(i)),trial
     filename=trim(filename)
     open(unit=100+i,file=filename,status='unknown')
@@ -570,12 +575,12 @@ do run=2,number_of_energies
   do i=1,atmosLen !Oxygen production from charge exchange
     write(117,F05) altitude(i),(real(oxygenCX(i,j))/norm,j=1,nChS)
   end do
- ! do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
-  !  write(118,F05) altitude(i),& !X-Ray production from direct excitation
-  !    (real(oxygen(27,i,j)+oxygen(29,i,j)+oxygen(32,i,j))/norm,j=1,nChs)
-  !  write(119,F05) altitude(i),& !X-Ray production from charge exchange
-  !    (real(oxygen(19,i,j)+oxygen(25,i,j)+oxygen(30,i,j))/norm,j=1,nChs)
- ! end do
+  ! do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
+  !   write(118,F05) altitude(i),& !X-Ray production from direct excitation
+  !     (real(oxygen(27,i,j)+oxygen(29,i,j)+oxygen(32,i,j))/norm,j=1,nChs)
+  !   write(119,F05) altitude(i),& !X-Ray production from charge exchange
+  !     (real(oxygen(19,i,j)+oxygen(25,i,j)+oxygen(30,i,j))/norm,j=1,nChs)
+  ! end do
 !***************************** Secondary Electrons *****************************
   do i=1,atmosLen
     do j=1,nE2strBins
@@ -617,7 +622,7 @@ do run=2,number_of_energies
   sec=mod(real(t4-t3)/clock_rate,60.0)
   write(206,*) 'Individual run elapsed real time = ',hrs,':',min,':',sec
   deallocate(angle)
-  write(filename,"('./Output/',I0,'keV/Elapsed_Times.dat')") energy
+  write(filename,"('./Output/Juno/',I0,'keV/Elapsed_Times.dat')") energy
   1003 continue
   inquire(file=filename,opened=open)
   if(open)then
