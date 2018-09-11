@@ -22,7 +22,7 @@ H05="(' E',14x,'SP        Sig       dE     dN        SP1           Ions',/,&
 H06="(' Alt [km]   ONeg',7x,'O',10x,'O+',9x,'O2+',8x,'O3+',8x,'O4+',8x,'O5+',&
       8x,'O6+',8x,'O7+',8x,'O8+')",&
 H07="(32x,'SS           DS         SPEX         DPEX          Sum')",&
-H08="(' Altitude integrated X-Ray production [photons cm^-2 s^-1] as a',&
+H08="(' Altitude integrated photon production [photons cm^-2 s^-1] as a',&
       ' function of charge state.')",&
 H09="(' ΔAlt [km]  ONeg',7x,'O',10x,'O+',9x,'O2+',8x,'O3+',8x,'O4+',8x,'O5+',&
       8x,'O6+',8x,'O7+',8x,'O8+')",&
@@ -30,10 +30,10 @@ H10="(' Photon production [photons cm^-3 s^-1] as a function of altitude',&
       ' and charge state.')",&
 H11="(' Initial input of 1 ion cm^-2 s^-1')",&
 !******************************* Notes Variables *******************************
-N01="(' Note: The X-Ray production below is from direct excitation of a',&
+N01="(' Note: The photon production below is from direct excitation of a',&
       ' charge state. If an electron gets excited and then',/,6x,&
       ' relaxes back down to a more energy favorable state, it will emit a',&
-      ' photon. Only O5+, O6+, and O7+ are capable of',/,6x,&
+      ' photon. Only O6+ and O7+ are capable of',/,6x,&
       ' producing X-Rays. The charge states below will produce in the UV',&
       ' spectrum. O8+ is meaningless here - it is only',/,6x,&
       ' output as a check that the model is outputting correctly. ONeg should',&
@@ -41,7 +41,7 @@ N01="(' Note: The X-Ray production below is from direct excitation of a',&
 N02="(' Note: These charge states are the resultant charge state from a',&
       ' collision. E.g. the production under O7+ is the number',/,6x,&
       ' of photons produced from O8+ gaining an electron that cascades',&
-      ' resulting in O7+. Therefore, only O5+, O6+,',/,6x,&
+      ' resulting in O7+. Therefore, only O6+',/,6x,&
       ' and O7+ are capable of producing X-Rays. The charge states below will',&
       ' produce in the UV spectrum. O8+ is,',/,6x,&
       ' meaningless here - it is only output as a check that the model is',&

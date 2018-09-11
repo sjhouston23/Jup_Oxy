@@ -13,6 +13,7 @@
 *.tex
 *.png
 *.sh
+*.x
 *~
 Moab*
 oxy
