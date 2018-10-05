@@ -1,4 +1,4 @@
-SUBROUTINE ReadElectDist(edist,adist)
+subroutine ReadElectDist(edist,adist)
 !*******************************************************************************
 !* Created by Stephen J. Houston 3.7.18 from previous work
 !*******************************************************************************
