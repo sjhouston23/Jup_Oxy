@@ -10,6 +10,7 @@
 *.chk
 *.fig
 *.eps
+*.jpg
 *.tex
 *.png
 *.sh
