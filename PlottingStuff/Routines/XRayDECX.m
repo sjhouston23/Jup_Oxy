@@ -1,7 +1,7 @@
 function XRayDECX(Parent1, XMatrix1, XMatrix2, Y1)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Example:
-%   CXProductionRate(figure,XRayDEComb{:,2:11},XRayCXComb{:,2:11},JunoAtmosphere2kmFlip{:,2})
+%   XRayDECX(figure,XRayDE{:,2:11},XRayCX{:,2:11},JunoAtmosphere2kmFlip{:,2})
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %CREATEAXES(Parent1, YMatrix1, JunoAtmosphere2kmFlip1)
