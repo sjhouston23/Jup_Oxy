@@ -376,7 +376,7 @@ do run=1,number_of_energies
         eCounts(bin)=eCounts(bin)+1 !Total number of electrons produced vs. eng.
         eAngle=eAngle+(pangle*90/acos(0.0))
         !Must add the pitch angle to ejected e angle. pangle = [0,acos(0.0)]
-        if(eAngle.le.90.0)then !Counting electrons going foward (downward)
+        if(eAngle.le.90.0)then !Counting electrons going forward (downward)
           tElectFwd=tElectFwd+1 !Total electrons forward
           electFwdA(dpt)=electFwdA(dpt)+1 !Electrons forward vs. alt.
           electFwdAE(dpt,bin)=electFwdAE(dpt,bin)+1 !Elect fwd vs. alt. and eng.

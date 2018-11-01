@@ -64,7 +64,7 @@ real*8 ThetaP !Theta in the projectile frame
 
 parameter (n=12,ChS=9) !Number of data points and charge states
 parameter (c=137.036) !Speed of light in a.u.
-parameter (oMass=14.903e6,auCon=27.2116) !oMass conversion to keV
+parameter (oMass=14.903e6,auCon=27.2116) !oMass conversion to keV/c^2
 parameter (pi=4.0*atan(1.0d0),eMass=0.5109989e3)
 parameter (IP1=15.4254,IP2=16.4287)
 !IP Data from J. Liu et al, Determination of the ionization and dissociation

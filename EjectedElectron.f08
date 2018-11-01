@@ -4,7 +4,7 @@ subroutine EjectedElectron(E,c,qtmp,eprobfunc,aprobfunc,electron_energy,&
 !*******************************************************************************
 !* Created by Stephen J. Houston 1.23.17
 !*******************************************************************************
-!* This subroutine will calculate the enrgy and angle of an ejected
+!* This subroutine will calculate the energy and angle of an ejected
 !* electron for a given ion energy, ion charge-state, & collision-type.
 !* Taking the probability distribution calculated (see ProbDist.f08)
 !* using the singly differential cross sections as a function of the
