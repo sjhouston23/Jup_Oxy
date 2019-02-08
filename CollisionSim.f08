@@ -82,7 +82,7 @@ subroutine CollisionSim(Energy,tempQ,sigTot,process,excite,elect,disso,PID)
 !*     Units: None
 !*
 !*    PID --> Collision Type (1-7,0-4)
-!*     Type: 2-Component Array, Integer
+!*     Type: 2-Dimension Array, Integer
 !*     Units: None
 !*
 !*******************************************************************************
