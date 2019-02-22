@@ -59,7 +59,7 @@ do i=1,nJebins !Convert to [counts/cm^2/s]
 !* The first 3 energy bins include both sulfur and oxygen. I'm assuming a 2:1
 !* ratio of oxygen:sulfur (from SO_2)
   if(i.le.3)Jintensity(i)=Jintensity(i)*2/3
-  Jflux(i)=Jintensity(i)*4*pi*Jebins(i)
+  Jflux(i)=Jintensity(i)*2*pi*Jebins(i)
   write(*,1004)Jenergy(i),Jintensity(i),Jebins(i),Jflux(i)
 end do
 close(100) !Close JEDI measurement file
@@ -105,7 +105,7 @@ do i=1,nInterp !Convert to [counts/cm^2/s]
   !   Iintensity(i)=Iintensity(i)*2/3
   !   Iflux(i)=Iintensity(i)*2*pi*Iebins(i)
   ! else
-  Iflux(i)=Iintensity(i)*4*pi*Iebins(i)
+  Iflux(i)=Iintensity(i)*2*pi*Iebins(i)
   ! end if
   write(*,1004)Ienergy(i),Iintensity(i),Iebins(i),Iflux(i)
 end do
