@@ -58,8 +58,8 @@ write(*,1003)'Energy Bin:','JEDI Intensity:','Energy Bin Width:',&
 do i=1,nJebins !Convert to [counts/cm^2/s]
 !* The first 3 energy bins include both sulfur and oxygen. I'm assuming a 2:1
 !* ratio of oxygen:sulfur (from SO_2)
-  if(i.le.3)Jflux(i)=Jintensity(i)*2*pi*Jebins(i)*2/3
-  if(i.ge.4)Jflux(i)=Jintensity(i)*2*pi*Jebins(i)
+  if(i.le.3)Jintensity(i)=Jintensity(i)*2/3
+  Jflux(i)=Jintensity(i)*4*pi*Jebins(i)
   write(*,1004)Jenergy(i),Jintensity(i),Jebins(i),Jflux(i)
 end do
 close(100) !Close JEDI measurement file
@@ -101,11 +101,12 @@ do i=1,nInterp !Convert to [counts/cm^2/s]
 !* a 2:1 ratio of oxygen:sulfur (from SO_2). The energy 387 is what I
 !* received in an email from Dennis Haggerty; however, Table 19 from the SSR
 !* publication concering JEDI would suggest it's more like 322.30.
-  if(Iebins(i).le.387)then
-    Iflux(i)=Iintensity(i)*2*pi*Iebins(i)*2/3
-  else
-    Iflux(i)=Iintensity(i)*2*pi*Iebins(i)
-  end if
+  ! if(Ienergy(i).le.387)then
+  !   Iintensity(i)=Iintensity(i)*2/3
+  !   Iflux(i)=Iintensity(i)*2*pi*Iebins(i)
+  ! else
+  Iflux(i)=Iintensity(i)*4*pi*Iebins(i)
+  ! end if
   write(*,1004)Ienergy(i),Iintensity(i),Iebins(i),Iflux(i)
 end do
 

@@ -53,7 +53,7 @@ character(len=1000) HpHeader,Hp2Header
 data Eion/10.625,11.619,12.656,13.786,15.017,16.177,17.427,18.774,20.225,&
 22.280,24.543,27.036,29.783,33.319,37.276,41.702,46.653,49.634,52.806,56.180,&
 59.770,63.785,68.070,72.642,77.522,86.586,96.710,108.018,120.647,139.899,&
-162.223,188.108,218.125,262.319,315.467,379.384,456.250/ !Interpolated energies
+162.223,188.108,218.125,262.319,315.467,379.384,456.250,541.563,625/ !JEDI
 data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Neg','Oxy0_','Oxy1_',&
 'Oxy2_','Oxy3_','Oxy4_','Oxy5_','Oxy6_','Oxy7_','Oxy8_','2Str_Elect_Fwd',&
 '2Str_Elect_Bwd'/ !Filenames that are read in from JupOxyPrecip code
@@ -69,6 +69,7 @@ write(*,*) "Don't include the extension in the file name (e.g. if you want to &
 read(*,*) version
 !write(version,'("v1")') !Filename of a JEDI spectrum (.d2s file)
 call JEDIInterpolator(version,Jflux)
+stop
 !********************************* Initialize **********************************
 energy=0;altitude=0.0;Hp=0.0;totalHp=0.0;H2p=0.0;totalH2p=0.0;H2Ex=0.0
 oxygen=0.0;prode2stF=0.0;prode2stB=0.0
@@ -77,7 +78,7 @@ write(*,*) 'Opening oxygen preciptation files for all energies...'
 do run=1,number_of_energies !Loop through each initial ion energy
   energy=nint(Eion(run))
   do i=1,nOutputFiles !Open all of the files
-    write(filename,'("./Output/Juno/",I0,"keV/",A,"_Comb.dat")') &
+    write(filename,'("./Output/",I0,"keV/",A,"_Comb.dat")') &
           energy,trim(filenames(i))
     filename=trim(filename)
     open(unit=100+i,file=filename,status='old')
@@ -182,18 +183,21 @@ do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
       real(Joxygen(i,19,j)+Joxygen(i,25,j)+Joxygen(i,30,j))*altDelta !CX
   end do
 end do
-do i=1,2
-  write(300+i,F05) altDelta/1e5,(IntegratedPhot(i,j),j=1,nChS)
+write(303,F05) altDelta/1e5,((IntegratedPhot(1,j)+IntegratedPhot(2,j)),j=1,nChS)
+do i=1,3
+  if(i.le.2)write(300+i,F05) altDelta/1e5,(IntegratedPhot(i,j),j=1,nChS)
   write(300+i,*) !Extra space
   write(300+i,H10) !Photon production vs. altitude header
   write(300+i,H06) !Charge state header
 end do
-write(303,F05) altDelta/1e5,((IntegratedPhot(1,j)+IntegratedPhot(2,j)),j=1,nChS)
 do i=1,atmosLen !DE - TEX+SPEX,SI+SPEX,DI+SPEX, CX - SC+SS,TI,SC
   write(301,F05) altitude(i),& !Photon production from direct excitation
     ((Joxygen(i,27,j)+Joxygen(i,29,j)+Joxygen(i,32,j)),j=1,nChs)
   write(302,F05) altitude(i),& !Photon production from charge exchange
     ((Joxygen(i,19,j)+Joxygen(i,25,j)+Joxygen(i,30,j)),j=1,nChs)
+  write(303,F05) altitude(i),& !Total photon production
+    ((Joxygen(i,27,j)+Joxygen(i,29,j)+Joxygen(i,32,j)+&
+      Joxygen(i,19,j)+Joxygen(i,25,j)+Joxygen(i,30,j)),j=1,nChs)
 end do
 close(301)
 close(302)
