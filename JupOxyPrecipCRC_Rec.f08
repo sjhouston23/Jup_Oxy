@@ -230,11 +230,11 @@ call rluxgo(lux,in,k1,k2)
 do run=1,2!number_of_energies
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
   energy=int(Eion(run))
-  write(filename,'("../scratch/Jup_OxyOutput/",I0,"keV/Seeds.dat")') energy
+  write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/Seeds.dat")') energy
   open(unit=205,file=filename,status='unknown',access='append',action='write')
   write(205,*) trial
   close(205)
-  write(filename,'("../scratch/Jup_OxyOutput/",I0,"keV/Overview",I0,".dat")')&
+  write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/Overview",I0,".dat")')&
         energy,trial
   open(unit=206,file=filename,status='unknown')
   write(206,*) "Number of ions:         ", number_of_ions
@@ -619,7 +619,7 @@ do run=1,2!number_of_energies
   sec=mod(real(t4-t3)/clock_rate,60.0)
   write(206,*) 'Individual run elapsed real time = ',hrs,':',min,':',sec
   deallocate(angle)
-  write(filename,"('../scratch/Jup_OxyOutput/',I0,'keV/Elapsed_Times.dat')")&
+  write(filename,"('../scratch/Jup_Oxy/Output/',I0,'keV/Elapsed_Times.dat')")&
         energy
   1003 continue
   inquire(file=filename,opened=open)
