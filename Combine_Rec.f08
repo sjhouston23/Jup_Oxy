@@ -52,16 +52,16 @@ data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Vs_Energy',&
 data nL/1547,1547,1548,5002,300,23,1545,1545,1545,1545,1545,1545,1545,1545,&
         1545,1545,1545,40300,40300/
 !******************************** Main Program *********************************
-do run=1,2!,number_of_energies
+do run=2,1,-1!,number_of_energies
 !********************************* Initialize **********************************
   nTrials=0;CtotHp=0.0;CtotH2p=0.0;CtotalHp=0.0;CtotalH2p=0.0;CH2Ex=0.0
   trial=0;COxyVsEng=0.0;CSPvsEng=0.0;CSigTotvsEng=0.0;CdEvsEng=0.0
   CnSPions=0;Ccollisions=0;Coxygen=0.0;CoxygenCX=0.0;CdNvsEng=0.0
   CSigdEvsEng=0.0;start=1;nerr=0;CcollSUM=0;CcollPerc=0.0;CcollPSUM=0
 !********** Open output data files for each set of initial energies ************
-  energy=Eion(run)
+  energy=int(Eion(run))
   write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/Elapsed_Times.dat")')&
-        energy
+        int(energy)
   open(unit=100,file=filename,status='old')
   do i=1,MaxnTrials
     read(100,*,end=1000) trial(i)
@@ -81,8 +81,8 @@ do run=1,2!,number_of_energies
 !*******************************************************************************
     m=trial(n)
     do i=1,nOutputFiles !Open all of the files
-      write(filename,'("./Output/",I0,"keV/",A,I0,".dat")') &
-            energy,trim(filenames(i)),trial(n)
+      write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/",A,I0,".dat")') &
+            int(energy),trim(filenames(i)),trial(n)
       filename=trim(filename)
       open(unit=100+i,file=filename,status='old',iostat=err)
       if(err.gt.0)then
@@ -187,7 +187,7 @@ do run=1,2!,number_of_energies
   write(*,*) 'Writing output files...'
   do i=1,nOutputFiles
     write(filename,'("./Output/",I0,"keV/",A,"_Comb.dat")') &
-          energy,trim(filenames(i))
+          int(energy),trim(filenames(i))
     filename=trim(filename)
     open(unit=200+i,file=filename,status='unknown')
   end do
@@ -245,9 +245,11 @@ do run=1,2!,number_of_energies
     write(217,F05) altitude(i),(CoxygenCX(i,j)/real(nTrials),j=1,nChS)
   end do
   !****************************** X-Ray Production *******************************
-  write(filename,'("./Output/",I0,"keV/XRay_DE_Comb.dat")') energy
+  write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/XRay_DE_Comb.dat")')&
+        int(energy)
   open(unit=300,file=trim(filename),status='unknown') !Open X-Ray DE
-  write(filename,'("./Output/",I0,"keV/XRay_CX_Comb.dat")') energy
+  write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/XRay_CX_Comb.dat")')&
+        int(energy)
   open(unit=301,file=trim(filename),status='unknown') !Open X-Ray CX
   altDelta=2.0e5 !2 km = 200,000 cm
   write(300,N01) !X-Ray DE Note
