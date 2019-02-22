@@ -132,8 +132,8 @@ logical open
 
 !****************************** Data Declaration *******************************
 !* Initial ion enegy input:
-data Eion/10.0,50.0,75.0,100.0,125.0,150.0,175.0,200.0,250.0,300.0,350.0,400.0,&
-     450.0,500.0,600.0,700.0,800.0,900.0,1000.0,1250.0,1500.0,1750.0,2000.0/!,&
+data Eion/541.563,625,10.0,50.0,75.0,100.0,125.0,150.0,175.0,200.0,250.0,300.0,350.0,400.0,&
+     450.0,500.0,600.0,700.0,800.0,900.0,1000.0,1250.0,1500.0/!,1750.0,2000.0/!,&
      ! 5000.0,10000.0,25000.0/
 !dE for each 2-Stream energy bin. Must match two stream code binning
 data del/20*0.5,70*1.0,10*2.0,20*5.0,10*10.0,20*10.0,10*50.0,10*100.0,40*200.0,&
@@ -161,9 +161,6 @@ altDelta =0.0;elect    =0
 energy   =0  ;nSPions  =0
 es       =0.0;
 E2str    =0.0;
-write(*,1234) int(Eion)
-1234 format(23(I4,'keV',1x))
-stop
 !**************************** Create the Atmosphere ****************************
 open(unit=200,file='./Atmosphere/Input/JunoColumnDensity_2km.dat',status='old')
 open(unit=201,file='./Atmosphere/Input/JunoAtmosphere_2km.dat',status='old')
@@ -230,7 +227,7 @@ read(arg,'(I100)') trial
 in=trial !RNG seed
 call rluxgo(lux,in,k1,k2)
 !********************************** Begin Run **********************************
-do run=1,number_of_energies
+do run=1,2!number_of_energies
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
   energy=int(Eion(run))
   write(filename,'("../scratch/Jup_OxyOutput/",I0,"keV/Seeds.dat")') energy
