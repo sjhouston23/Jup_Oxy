@@ -44,15 +44,15 @@ character(len=100) filename,filenames(nOutputFiles)
 character(len=1000) HpHeader,Hp2Header
 
 !****************************** Data Declaration *******************************
-data Eion/541.563,625,10.0,50.0,75.0,100.0,125.0,150.0,175.0,200.0,250.0,300.0,350.0,400.0,&
-     450.0,500.0,600.0,700.0,800.0,900.0,1000.0,1250.0,1500.0/!,1750.0,2000.0/
+data Eion/10.0,50.0,75.0,100.0,125.0,150.0,175.0,200.0,250.0,300.0,350.0,400.0,&
+     450.0,500.0,600.0,700.0,800.0,900.0,1000.0,1250.0,1500.0,1750.0,2000.0/
 data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Vs_Energy',&
 'Stopping_Power','Processes','Oxy_Neg','Oxy0_','Oxy1_','Oxy2_','Oxy3_','Oxy4_',&
 'Oxy5_','Oxy6_','Oxy7_','Oxy8_','Oxy_CX','2Str_Elect_Fwd','2Str_Elect_Bwd'/
 data nL/1547,1547,1548,5002,300,23,1545,1545,1545,1545,1545,1545,1545,1545,&
         1545,1545,1545,40300,40300/
 !******************************** Main Program *********************************
-do run=2,1,-1!,number_of_energies
+do run=1,number_of_energies
 !********************************* Initialize **********************************
   nTrials=0;CtotHp=0.0;CtotH2p=0.0;CtotalHp=0.0;CtotalH2p=0.0;CH2Ex=0.0
   trial=0;COxyVsEng=0.0;CSPvsEng=0.0;CSigTotvsEng=0.0;CdEvsEng=0.0
@@ -61,7 +61,7 @@ do run=2,1,-1!,number_of_energies
 !********** Open output data files for each set of initial energies ************
   energy=int(Eion(run))
   write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/Elapsed_Times.dat")')&
-        int(energy)
+        2000!int(energy)
   open(unit=100,file=filename,status='old')
   do i=1,MaxnTrials
     read(100,*,end=1000) trial(i)
