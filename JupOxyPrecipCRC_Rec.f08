@@ -60,7 +60,7 @@ real*8 oxEngBinSize !Size of oxygen bins
 real*8 stopPowerEBinSize !Size of stopping power bins
 real*8 mass !Mass of species (oxygen=16) used in energy loss equation
 
-parameter(number_of_energies=23,atmosLen=1544,nE2strBins=260,nProc=36,nChS=10)
+parameter(number_of_energies=26,atmosLen=1544,nE2strBins=260,nProc=36,nChS=10)
 parameter(ne=2600,na=1800) !Number of electron energy and angle bins
 parameter(k1=0,k2=0,lux=3) !lux set to 3 for optimal randomness and timeliness
 parameter(nOxEngBins=5000,oxEngBinSize=5.0,mass=16.0) !Oxygen binning/mass
@@ -131,9 +131,9 @@ logical open
 
 !****************************** Data Declaration *******************************
 !* Initial ion enegy input:
-data Eion/541.563,625,10.0,50.0,75.0,100.0,125.0,150.0,175.0,200.0,250.0,300.0,350.0,400.0,&
-     450.0,500.0,600.0,700.0,800.0,900.0,1000.0,1250.0,1500.0/!,1750.0,2000.0/!,&
-     ! 5000.0,10000.0,25000.0/
+data Eion/10.0,50.0,75.0,100.0,125.0,150.0,175.0,200.0,250.0,300.0,350.0,400.0,&
+     450.0,500.0,600.0,700.0,800.0,900.0,1000.0,1250.0,1500.0,1750.0,2000.0,&
+     5000.0,10000.0,25000.0/ !541.563,625,
 !dE for each 2-Stream energy bin. Must match two stream code binning
 data del/20*0.5,70*1.0,10*2.0,20*5.0,10*10.0,20*10.0,10*50.0,10*100.0,40*200.0,&
          10*400,10*1000,10*2000,10*5000,10*10000.0/
@@ -226,7 +226,7 @@ read(arg,'(I100)') trial
 in=trial !RNG seed
 call rluxgo(lux,in,k1,k2)
 !********************************** Begin Run **********************************
-do run=1,2!number_of_energies
+do run=number_of_energies-3,number_of_energies
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
   energy=int(Eion(run))
   write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/Seeds.dat")') energy
