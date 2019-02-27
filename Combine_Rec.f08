@@ -197,8 +197,10 @@ do run=2,1,-1!,number_of_energies
   write(202,*) trim(Hp2Header)
   write(203,H03) !H2* header
   do i=1,atmosLen !Ionization/Excitation vs. altitude
-    write(201,F01) altitude(i),(CtotHp(j,i)/real(nTrials),j=1,31),CtotalHp(i)
-    write(202,F01) altitude(i),(CtotH2p(j,i)/real(nTrials),j=1,11),CtotalH2p(i)
+    write(201,F01) altitude(i),(CtotHp(j,i)/real(nTrials),j=1,31),&
+                   CtotalHp(i)/real(nTrials)
+    write(202,F01) altitude(i),(CtotH2p(j,i)/real(nTrials),j=1,11),&
+                   CtotalH2p(i)/real(nTrials)
     write(203,F02) altitude(i),CH2Ex(i)/real(nTrials)
   end do
   write(204,H04) !Oxy vs energy header
@@ -245,10 +247,10 @@ do run=2,1,-1!,number_of_energies
     write(217,F05) altitude(i),(CoxygenCX(i,j)/real(nTrials),j=1,nChS)
   end do
   !****************************** X-Ray Production *******************************
-  write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/XRay_DE_Comb.dat")')&
+  write(filename,'("./Output/",I0,"keV/XRay_DE_Comb.dat")')&
         int(energy)
   open(unit=300,file=trim(filename),status='unknown') !Open X-Ray DE
-  write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/XRay_CX_Comb.dat")')&
+  write(filename,'("./Output/",I0,"keV/XRay_CX_Comb.dat")')&
         int(energy)
   open(unit=301,file=trim(filename),status='unknown') !Open X-Ray CX
   altDelta=2.0e5 !2 km = 200,000 cm
@@ -296,8 +298,8 @@ do run=2,1,-1!,number_of_energies
     end do
   end do
   do j=1,nE2strBins !2-Stream electrons, forward and backward
-    write(218,F2Str) (prode2stF(i,j),i=atmosLen,1,-1)
-    write(219,F2Str) (prode2stB(i,j),i=atmosLen,1,-1)
+    write(218,F2Str) (Cprode2stF(i,j),i=atmosLen,1,-1)
+    write(219,F2Str) (Cprode2stB(i,j),i=atmosLen,1,-1)
   end do
   do i=1,nOutputFiles !Close the combine output files
     close(200+i)
