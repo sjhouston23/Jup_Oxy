@@ -1,4 +1,4 @@
-1544	  PROGRAM JELECT
+PROGRAM JELECT
 
 !C     ===============  JELECT  ========================================
 !C     This program is the electron code used originally for

@@ -49,21 +49,21 @@ end do
 read(50,9999) flnm4 !../Output/[Energy]keV/H2_Excite_Prod_Comb.dat
 write(*,*) flnm4
 open(1, FILE='output/'//SZA//'phi_JG.chk', STATUS='OLD')
-open(11,FILE='output/jelect/'//SZA//'PHIZ_2000keV_test.DAT',status='unknown')
+open(11,FILE='output/jelect/'//SZA//'PHIZ_500keV_test.DAT',status='unknown')
 !c      open(2,FILE='output/'//SZA//'airglow_JUP20keV.dat',STATUS='OLD')
 open(2,FILE=flnm2,STATUS='OLD')
 !c      open(2,FILE='common/output/'//SZA//'airglow1MeV.dat',STATUS='OLD')
-open(23,FILE='common/output/SE/atmosJG/airglow2000.dat',status='unknown')
-open(22,FILE='common/output/SE/atmosJG/secprd2000.dat',status='unknown')
-open(24,file='common/output/SE/atmosJG/escapeflux2000.dat',status='unknown')
+open(23,FILE='common/output/SE/atmosJG/airglow500.dat',status='unknown')
+open(22,FILE='common/output/SE/atmosJG/secprd500.dat',status='unknown')
+open(24,file='common/output/SE/atmosJG/escapeflux500.dat',status='unknown')
 !c	  open(3,file='output/'//sza//'flux3d_JUP.dat',status='old')
 open(3,file=flnm3,status='old')
-open(33,file='output/jelect/'//sza//'ALTvsFLUX2000keV_test.dat')
+open(33,file='output/jelect/'//sza//'ALTvsFLUX500keV_test.dat')
 !c	  open(4,file='OUTPUT/heatrate.chk',status='old')
 !c	  open(44,file='my output/'//folder//'ElecHeatRate.dat')
 open(4,file=flnm4,status='old') !H2 Excitation
-open(1002,file='../Output/Airglow/LymanWerner25000.dat',status='unknown')
-open(1000,file='../Output/Airglow/LWSpectrum25000.dat',status='unknown')
+open(1002,file='../Output/Airglow/LymanWerner500.dat',status='unknown')
+open(1000,file='../Output/Airglow/LWSpectrum500.dat',status='unknown')
 !open(1000,file='output/airglow/Electron_Beams/20keVbeam.dat',status='unknown')
 !open(1001,file='CH4opacity.dat',status='unknown')
 
@@ -173,10 +173,10 @@ do I = 1, NZ
   read(2,101) (PRODCH4(J,I),J=1,6)
 end do
 
-write(22,*)'     Z','         H2+','        H+','      HE+','       CH4+','      CH3+',&
+write(22,*)'    Z','         H2+','        H+','      HE+','       CH4+','      CH3+',&
 '     CH2+','       CH+','       C+'
 do I = 1,NZ
-write(22,103)((I-1)*2+200.0),PRODH2(1,I),PRODH2(2,I)+PRODH(1,I)+PRODCH4(4,I),PRODHE(1,I),&
+write(22,103)RAD(I),PRODH2(1,I),PRODH2(2,I)+PRODH(1,I)+PRODCH4(4,I),PRODHE(1,I),&
 PRODCH4(1,I),PRODCH4(2,I),PRODCH4(3,I),PRODCH4(5,I),PRODCH4(6,I)
 TProdH2(i)=PRODH2(1,I)
 TProdH(i)=PRODH2(2,I)+PRODH(1,I)+PRODCH4(4,I)
@@ -222,8 +222,8 @@ write(*,'(A,ES10.3)') 'Ion Lyman/Werner band emission:', sum(H2Excite)*2e5*10**6
 write(*,*) '******************************************************'
 write(*,*) ''
 
- 100 format(39X,ES9.3,1X,ES9.3)
- 101 format(38X,6(ES9.3,2X))
+ 100 format(39X,ES9.3,2X,ES9.3)
+ 101 format(39X,6(ES9.3,2X))
  102 format(61X,I4,I4)
  103 format(9ES10.3)
  104 format(F8.2,7(2x,ES10.3))
@@ -264,7 +264,7 @@ write(*,*) 'Total escape flux of electrons: ', totalescapeflux, 'eV/cm^2/s'
 write(*,*) 'Total electrons: ', totalelectrons, 'electrons/cm^2/s'
 write(*,*) 'Total current density: ', totalelectrons*1.60217662e-19*10**6, 'A/cm^2'
 
- 200 format(60X,F10.2)
+ 200 format(61X,F10.2)
  391 format(3e12.3)
 
 !C  electron heating rate
