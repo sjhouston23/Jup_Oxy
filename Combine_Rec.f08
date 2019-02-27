@@ -16,7 +16,7 @@ integer energy,atmosLen,run
 
 parameter(nOutputFiles=19,MaxnTrials=1000,atmosLen=1544,nProc=36,nChS=10)
 parameter(nOxEngBins=5000,nStopPowerEBins=295,nE2strBins=260,MaxnLines=100000)
-parameter(number_of_energies=26)
+parameter(number_of_energies=39)!26)
 
 integer err,start,nerr !Error upon opening files
 integer trial(MaxnTrials),nLines(nOutputFiles) !Number of trials/lines in a file
@@ -44,25 +44,29 @@ character(len=100) filename,filenames(nOutputFiles)
 character(len=1000) HpHeader,Hp2Header
 
 !****************************** Data Declaration *******************************
-data Eion/10.0,50.0,75.0,100.0,125.0,150.0,175.0,200.0,250.0,300.0,350.0,400.0,&
-     450.0,500.0,600.0,700.0,800.0,900.0,1000.0,1250.0,1500.0,1750.0,2000.0,&
-     5000.0,10000.0,25000.0/
+! data Eion/10.0,50.0,75.0,100.0,125.0,150.0,175.0,200.0,250.0,300.0,350.0,400.0,&
+!      450.0,500.0,600.0,700.0,800.0,900.0,1000.0,1250.0,1500.0,1750.0,2000.0,&
+!      5000.0,10000.0,25000.0/
+data Eion/10.625,11.619,12.656,13.786,15.017,16.177,17.427,18.774,20.225,&
+22.280,24.543,27.036,29.783,33.319,37.276,41.702,46.653,49.634,52.806,56.180,&
+59.770,63.785,68.070,72.642,77.522,86.586,96.710,108.018,120.647,139.899,&
+162.223,188.108,218.125,262.319,315.467,379.384,456.250,541.463,625/
 data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Vs_Energy',&
 'Stopping_Power','Processes','Oxy_Neg','Oxy0_','Oxy1_','Oxy2_','Oxy3_','Oxy4_',&
 'Oxy5_','Oxy6_','Oxy7_','Oxy8_','Oxy_CX','2Str_Elect_Fwd','2Str_Elect_Bwd'/
 data nL/1547,1547,1548,5002,300,23,1545,1545,1545,1545,1545,1545,1545,1545,&
         1545,1545,1545,40300,40300/
 !******************************** Main Program *********************************
-do run=number_of_energies-3,number_of_energies
+do run=1,number_of_energies
 !********************************* Initialize **********************************
   nTrials=0;CtotHp=0.0;CtotH2p=0.0;CtotalHp=0.0;CtotalH2p=0.0;CH2Ex=0.0
   trial=0;COxyVsEng=0.0;CSPvsEng=0.0;CSigTotvsEng=0.0;CdEvsEng=0.0
   CnSPions=0;Ccollisions=0;Coxygen=0.0;CoxygenCX=0.0;CdNvsEng=0.0
   CSigdEvsEng=0.0;start=1;nerr=0;CcollSUM=0;CcollPerc=0.0;CcollPSUM=0
 !********** Open output data files for each set of initial energies ************
-  energy=int(Eion(run))
+  energy=nint(Eion(run))
   write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/Elapsed_Times.dat")')&
-        2000!int(energy)
+        11!int(energy)
   open(unit=100,file=filename,status='old')
   do i=1,MaxnTrials
     read(100,*,end=1000) trial(i)
@@ -83,7 +87,7 @@ do run=number_of_energies-3,number_of_energies
     m=trial(n)
     do i=1,nOutputFiles !Open all of the files
       write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/",A,I0,".dat")') &
-            int(energy),trim(filenames(i)),trial(n)
+            energy,trim(filenames(i)),trial(n)
       filename=trim(filename)
       open(unit=100+i,file=filename,status='old',iostat=err)
       if(err.gt.0)then
@@ -188,7 +192,7 @@ do run=number_of_energies-3,number_of_energies
   write(*,*) 'Writing output files...'
   do i=1,nOutputFiles
     write(filename,'("./Output/",I0,"keV/",A,"_Comb.dat")') &
-          int(energy),trim(filenames(i))
+          energy,trim(filenames(i))
     filename=trim(filename)
     open(unit=200+i,file=filename,status='unknown')
   end do
@@ -249,10 +253,10 @@ do run=number_of_energies-3,number_of_energies
   end do
   !****************************** X-Ray Production *******************************
   write(filename,'("./Output/",I0,"keV/XRay_DE_Comb.dat")')&
-        int(energy)
+        energy
   open(unit=300,file=trim(filename),status='unknown') !Open X-Ray DE
   write(filename,'("./Output/",I0,"keV/XRay_CX_Comb.dat")')&
-        int(energy)
+        energy
   open(unit=301,file=trim(filename),status='unknown') !Open X-Ray CX
   altDelta=2.0e5 !2 km = 200,000 cm
   write(300,N01) !X-Ray DE Note

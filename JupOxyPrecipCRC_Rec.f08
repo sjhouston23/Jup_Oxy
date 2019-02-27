@@ -59,8 +59,8 @@ integer nOutputFiles
 real*8 oxEngBinSize !Size of oxygen bins
 real*8 stopPowerEBinSize !Size of stopping power bins
 real*8 mass !Mass of species (oxygen=16) used in energy loss equation
-
-parameter(number_of_energies=26,atmosLen=1544,nE2strBins=260,nProc=36,nChS=10)
+!number_of_energies=29 for normal
+parameter(number_of_energies=39,atmosLen=1544,nE2strBins=260,nProc=36,nChS=10)
 parameter(ne=2600,na=1800) !Number of electron energy and angle bins
 parameter(k1=0,k2=0,lux=3) !lux set to 3 for optimal randomness and timeliness
 parameter(nOxEngBins=5000,oxEngBinSize=5.0,mass=16.0) !Oxygen binning/mass
@@ -131,9 +131,13 @@ logical open
 
 !****************************** Data Declaration *******************************
 !* Initial ion enegy input:
-data Eion/10.0,50.0,75.0,100.0,125.0,150.0,175.0,200.0,250.0,300.0,350.0,400.0,&
-     450.0,500.0,600.0,700.0,800.0,900.0,1000.0,1250.0,1500.0,1750.0,2000.0,&
-     5000.0,10000.0,25000.0/ !541.563,625,
+! data Eion/10.0,50.0,75.0,100.0,125.0,150.0,175.0,200.0,250.0,300.0,350.0,400.0,&
+!      450.0,500.0,600.0,700.0,800.0,900.0,1000.0,1250.0,1500.0,1750.0,2000.0,&
+!      5000.0,10000.0,25000.0/ !541.563,625,
+data Eion/10.625,11.619,12.656,13.786,15.017,16.177,17.427,18.774,20.225,&
+22.280,24.543,27.036,29.783,33.319,37.276,41.702,46.653,49.634,52.806,56.180,&
+59.770,63.785,68.070,72.642,77.522,86.586,96.710,108.018,120.647,139.899,&
+162.223,188.108,218.125,262.319,315.467,379.384,456.250,541.463,625/
 !dE for each 2-Stream energy bin. Must match two stream code binning
 data del/20*0.5,70*1.0,10*2.0,20*5.0,10*10.0,20*10.0,10*50.0,10*100.0,40*200.0,&
          10*400,10*1000,10*2000,10*5000,10*10000.0/
@@ -226,9 +230,9 @@ read(arg,'(I100)') trial
 in=trial !RNG seed
 call rluxgo(lux,in,k1,k2)
 !********************************** Begin Run **********************************
-do run=number_of_energies-3,number_of_energies
+do run=number_of_energies,1
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
-  energy=int(Eion(run))
+  energy=nint(Eion(run))
   write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/Seeds.dat")') energy
   open(unit=205,file=filename,status='unknown',access='append',action='write')
   write(205,*) trial
