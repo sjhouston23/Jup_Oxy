@@ -16,7 +16,7 @@ integer energy,atmosLen,run
 
 parameter(nOutputFiles=19,MaxnTrials=1000,atmosLen=1544,nProc=36,nChS=10)
 parameter(nOxEngBins=5000,nStopPowerEBins=295,nE2strBins=260,MaxnLines=100000)
-parameter(number_of_energies=23)
+parameter(number_of_energies=26)
 
 integer err,start,nerr !Error upon opening files
 integer trial(MaxnTrials),nLines(nOutputFiles) !Number of trials/lines in a file
@@ -45,14 +45,15 @@ character(len=1000) HpHeader,Hp2Header
 
 !****************************** Data Declaration *******************************
 data Eion/10.0,50.0,75.0,100.0,125.0,150.0,175.0,200.0,250.0,300.0,350.0,400.0,&
-     450.0,500.0,600.0,700.0,800.0,900.0,1000.0,1250.0,1500.0,1750.0,2000.0/
+     450.0,500.0,600.0,700.0,800.0,900.0,1000.0,1250.0,1500.0,1750.0,2000.0,&
+     5000.0,10000.0,25000.0/
 data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Vs_Energy',&
 'Stopping_Power','Processes','Oxy_Neg','Oxy0_','Oxy1_','Oxy2_','Oxy3_','Oxy4_',&
 'Oxy5_','Oxy6_','Oxy7_','Oxy8_','Oxy_CX','2Str_Elect_Fwd','2Str_Elect_Bwd'/
 data nL/1547,1547,1548,5002,300,23,1545,1545,1545,1545,1545,1545,1545,1545,&
         1545,1545,1545,40300,40300/
 !******************************** Main Program *********************************
-do run=1,number_of_energies
+do run=number_of_energies-3,number_of_energies
 !********************************* Initialize **********************************
   nTrials=0;CtotHp=0.0;CtotH2p=0.0;CtotalHp=0.0;CtotalH2p=0.0;CH2Ex=0.0
   trial=0;COxyVsEng=0.0;CSPvsEng=0.0;CSigTotvsEng=0.0;CdEvsEng=0.0
