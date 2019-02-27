@@ -55,7 +55,6 @@ integer nStopPowerEBins !Number of stopping power energy bins
 integer nProc,nChS !Number of processes and charge states
 integer ne,na !Number of electron energy and angle bins
 integer nOutputFiles
-integer stephen
 
 real*8 oxEngBinSize !Size of oxygen bins
 real*8 stopPowerEBinSize !Size of stopping power bins
