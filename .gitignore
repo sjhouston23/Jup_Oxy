@@ -14,6 +14,7 @@
 *.tex
 *.png
 scopy.sh
+LoopRead.sh
 *.x
 *~
 Moab*
@@ -31,3 +32,4 @@ UpdatedElectronDist
 2Stream/input
 2Stream/common
 2Stream/output
+2Stream/Plots
