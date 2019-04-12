@@ -53,7 +53,7 @@ PROGRAM JELECT
 !C   12. Modified to allow parameter file to update solar flux file.
 !C                                       J. Clark  Feb 24, 2004
 !C *********************************************************************!
-
+integer IonEnergy
 PARAMETER(ns=1544, nz=1544, ne=260, nn=10) !Make sure that these values are updated if there is a change in the alt. bins.
 !c Make sure to change in EIMPIR sub. and Impit sub.
 !c 	  PARAMETER(ns=1544, nz=1544, ne=260, nn=10)
@@ -87,9 +87,9 @@ COMMON/RABBIT/NAPP(4),CRAB(60,10,4),ECRAB(60,10,4),NCRAB(10,4)
 common/atmos/s,rad,ramagl(ns),ee,dele,zspec, delz  	! for sub. eimpir
 common /angle/theta,rp,ramdir			! for sub. para2
 CHARACTER*100 FLNM4,FLNM11,FLNM1,FLNM15,FlNM21,FLNM28,flnm14
-CHARACTER*100 FLNM19,flnm20,flnm22
+CHARACTER*100 FLNM19,flnm20,flnm22,flnm2323
 CHARACTER*50 tag1,tag2
-CHARACTER*3 SZA
+CHARACTER*2 SZA
 data pii/3.1415926/
 DATA DEL/20*0.5,70*1.0,10*2.0,20*5.0,10*10.0,20*10.0,10*50.0,10*100.0,40*200.0,&
         10*400,10*1000,10*2000,10*5000,10*10000.0/
@@ -140,34 +140,48 @@ if(para .eq. 1)then
 elseif(para .eq. 0)then
 	print*, 'RADIAL field line'
 endif
-
+! 111 format(I4)
+read(1,*) IonEnergy
+write(*,*) '--------------------------------------------------------------------------------'
+write(*,*) "Ion energy of:",IonEnergy,"keV/u"
+write(*,*) '--------------------------------------------------------------------------------'
 READ(1,*) CHI
 print*, 'SZA =', chi
+
+if(chi .eq. 0)then
+	SZA = '00'
+elseif(chi .eq. 60)then
+	SZA = '60'
+elseif(chi .eq. 80)then
+	SZA = '80'
+elseif(chi .eq. 90)then
+	SZA = '90'
+elseif(chi .eq. 100)then
+	SZA = 'ME'
+elseif(chi .eq. 200)then
+	SZA = 'SE'
+ENDIF
+
 READ(1,9999),flnm11 !output/SE/pespect_j2MeVJG.dat
 print*, flnm11, '11'
-READ(1,9999),flnm28 !output/SE/flux3d_JUP1000keVJG.dat
+write(flnm28,"('output/',A,'/flux3d_JUP',I0,'keVJG-eq.dat')") SZA,IonEnergy
+READ(1,9999)!,flnm28 !output/SE/flux3d_JUP1000keVJG.dat
 print*, flnm28, '28'
-READ(1,9999),flnm15 !output/SE/airglow_JUP1000keVJG.dat
+write(flnm15,"('output/',A,'/airglow_JUP',I0,'keVJG-eq.dat')") SZA,IonEnergy
+READ(1,9999)!,flnm15 !output/SE/airglow_JUP1000keVJG.dat
 print*, flnm15, '15'
-read(1,9999), flnm20 !common/output/SE/prdelf2str1000keV.dat
+write(flnm20,"('../Output/',I0,'keV/2Str_Elect_Fwd_Comb.dat')") IonEnergy
+read(1,9999)!, flnm20 !common/output/SE/prdelf2str1000keV.dat
 print*, flnm20, '20'
-read(1,9999), flnm22 !common/output/SE/prdelb2str1000keV.dat
+write(flnm22,"('../Output/',I0,'keV/2Str_Elect_Bwd_Comb.dat')") IonEnergy
+read(1,9999)!, flnm22 !common/output/SE/prdelb2str1000keV.dat
 print*, flnm22, '22'
+read(1,*) !Skip H2* Prod
+write(flnm2323,"('common/output/',A,'/ForwardElecProd',I0,'-eq.dat')") SZA,IonEnergy
+read(1,9999)!, flnm2323 !Forward electron production output file
+print*, flnm2323, '2323'
 CLOSE(1)
 !* Check the sza for the file labeling
-if(chi .eq. 0)then
-	SZA = '00/'
-elseif(chi .eq. 60)then
-	SZA = '60/'
-elseif(chi .eq. 80)then
-	SZA = '80/'
-elseif(chi .eq. 90)then
-	SZA = '90/'
-elseif(chi .eq. 100)then
-	SZA = 'ME/'
-elseif(chi .eq. 200)then
-	SZA = 'SE/'
-ENDIF
 !c	OPEN(UNIT=33, FILE='PARAB32.DAT', STATUS='OLD') !This file is read if there is a parabola for B
 
 !c	DO I = 1,2
@@ -187,7 +201,8 @@ OPEN(7,FILE='common/input/XGRIDNEW_EXTEND.jup',STATUS='OLD')	!extended energy gr
 !C		OPEN(7,FILE='common/input/xgridnew_ext.jupiter',STATUS='OLD')	!extended energy grid
 !C	  OPEN(9,FILE='common/output/xsect_nobcksc.jupiter',STATUS='OLD')	!XSECT output
 OPEN(9,FILE='common/output/xsect.jupiter',STATUS='OLD')	!XSECT output
-OPEN(11,FILE=FLNM11,STATUS='OLD')	!p.e.prod.rates.
+! OPEN(11,FILE=FLNM11,STATUS='OLD')	!p.e.prod.rates.
+write(*,*) 'NO PHOTOELECTRONS CONSIDERED'
 OPEN(13,FILE='input/elect/eaglw.jup',STATUS='OLD')	!airglow cs
 OPEN(17,FILE='common/input/Tempjup_JG.txt', STATUS='OLD') !Neutral Temperature profiles from Maurellis
 !	  OPEN(19, FILE='common/output/'//SZA//'jpce2.out',
@@ -226,25 +241,25 @@ open(22,FILE=flnm22,STATUS='OLD')
 !c     +t', status='old')
 !c      open(23, file='common/output/'//SZA//'prdelb2str15MeV2.dat',
 !c     + status='old')
-open(2323,file='figure_1.dat',status='unknown')
+open(2323,file=flnm2323,status='unknown')
 !C
 !CCCC  $1.2: open output files.
 !C   ------------------------
-OPEN(34,FILE='output/'//SZA//'heatrate_JG.chk',STATUS='UNKNOWN')
-OPEN(8,FILE='output/'//SZA//'FLUX_JG.chk',STATUS='UNKNOWN')
-OPEN(12,FILE='output/'//SZA//'ATMOS_JG.chk',STATUS='UNKNOWN')
-OPEN(14,FILE='output/'//SZA//'phi_JG.chk',STATUS='UNKNOWN')
+OPEN(34,FILE='output/'//SZA//'/heatrate_JG.chk',STATUS='UNKNOWN')
+OPEN(8,FILE='output/'//SZA//'/FLUX_JG.chk',STATUS='UNKNOWN')
+OPEN(12,FILE='output/'//SZA//'/ATMOS_JG.chk',STATUS='UNKNOWN')
+OPEN(14,FILE='output/'//SZA//'/phi_JG.chk',STATUS='UNKNOWN')
 !OPEN(15,FILE='output/SE/airglow_JUP1000keVJG.dat',STATUS='UNKNOWN')
 OPEN(15,FILE=FLNM15,STATUS='UNKNOWN')  !output/airglow_JUP.dat
-OPEN(16,FILE='output/'//SZA//'CHECK_JG.chk',STATUS='UNKNOWN')
-OPEN(18,FILE='output/'//SZA//'SUTH_JG.chk', STATUS='UNKNOWN')
+OPEN(16,FILE='output/'//SZA//'/CHECK_JG.chk',STATUS='UNKNOWN')
+OPEN(18,FILE='output/'//SZA//'/SUTH_JG.chk', STATUS='UNKNOWN')
 OPEN(28,FILE=FLNM28,STATUS='UNKNOWN') !output/flux3d_JUP.dat
 !OPEN(28,FILE='output/SE/flux3d_JUP1000keVJG.dat',STATUS='UNKNOWN')
 !c	  OPEN(50,FILE='R_ALPHA.DAT',STATUS='UNKNOWN')
 OPEN(51,FILE='output/jelect/CELECT_DENSJG.DAT',STATUS='UNKNOWN')
 OPEN(52,FILE='output/jelect/EIMPIRION_2JG.DAT',STATUS='UNKNOWN')
 OPEN(53,FILE='output/jelect/DISSOC_JG.DAT', STATUS='UNKNOWN')
-OPEN(54,FILE='output/jelect/'//SZA//'TotIONprod1_JG.dat',STATUS='unknown')!, access ='append')
+OPEN(54,FILE='output/jelect/'//SZA//'/TotIONprod1_JG.dat',STATUS='unknown')!, access ='append')
 !C      ====================================================
 !C                    SECTION 2: input section
 !C		     ------------------------
@@ -294,9 +309,9 @@ PRINT*, 'JELECT.PAR AND GEOPAR.T HAVE DIFFERENT PHOTOELECRTRON INPUT CRITERIA', 
 
 !*Read in the neutral/electron temperature at each altitude bin
 	  print*, 'check that you are using the right T profile'
-      DO I=1,NS
-      	READ(17,*) Z, TE(I)
-      ENDDO
+      ! DO I=1,NS
+      ! 	READ(17,*) Z, TE(I)
+      ! ENDDO
 
 !C      ======================================================
 !C                 SECTION 3. Initial Setup
@@ -415,16 +430,19 @@ PRINT*, 'JELECT.PAR AND GEOPAR.T HAVE DIFFERENT PHOTOELECRTRON INPUT CRITERIA', 
 !	  do i =1,7
 !     	read(19,*) !skip lines in the jpce output to then read the electron densities  !!!!!Commented out to not use Chemical Code Input
 !      enddo
-open(unit=223,file='../Atmosphere/Input/JunoAtmosphere_2km.dat',status='old')
+! open(unit=223,file='../Atmosphere/Input/JunoAtmosphere_2km.dat',status='old')
+open(unit=223,file='../Atmosphere/Input/Jupiter_Atmosphere_EqMix.dat',status='old')
 read(223,*)
-DO IP = 1, IPMAX !loop over all altitude increments
+! DO IP = 1, IPMAX !loop over all altitude increments (Normal Atmosphere)
+do IP=IPMAX,1,-1 !Equal mixing atmosphere
 	R = (RAD(IP)*1E-5)
-	read(223,*) dummy1,H2,HE,CH4,H
+	! read(223,*) dummy1,H2,HE,CH4,H,dummy1,TE(IP) !Normal atmosphere
+	read(223,*) dummy1,H2,HE,CH4,dummy1,TE(IP) !Equal mixing atmosphere
+  H=1.0E-15
 	ZSPEC(1,IP) = H2
 	ZSPEC(2,IP) = HE
 	ZSPEC(3,IP) = H
 	ZSPEC(4,IP) = CH4
-
 !* This read statement should only be done after all the codes have been run once with the guessed density
 !C		  read(19,*) alt, sne(ip)
 !c		   read(19,555) sne(ip) !Read the electron densities produced by jpce
@@ -451,20 +469,23 @@ ENDDO
 	  	PHIINF(I)=0.0 !No magnetospheric electrons.
 !*****SJH Uncomment the next lines for a monogenergetic beam
 !* Here I have allowed for a quick normalization to 1 mW/m^2. It takes two runs,
-!* But the second reun tells you want is needed for phiinf to have 1 mW/m^2.
-!			IF(I .EQ. 259)THEN
-!					print*,''
-!       	  print*, 'energy bin for monoenergetic beam [eV] = ', EE(I)
-!          PHIINF(I) = 660.477173 !Means: Input flux of 'something'cm-2s-1eV-1 at E bin chosen
-!          ! I = 242 and phiinf = 4.85e4 for 50keV
-!          ! I = 226 and phiinf = 6.40e5 for 20keV
-!          ! I = 251 and phiinf = 1.26e4 for 100keV
-!          print*, 'Energy flux [eV-1 cm-2 s-1] = ',phiinf(i)
-!					print*, 'Delta E [eV] = ', DEL(I)
-!					print*, 'Energy flux [mW m-2] = ', phiinf(i)*DEL(I)*EE(I)*1.60217662e-12*0.5
-!					print*, 'For 1 mW/m^2, use phiinf = ', 2/(DEL(I)*EE(I)*1.60217662e-12)
-!					print*, ''
-!       ENDIF
+!* But the second run tells you want is needed for phiinf to have 1 mW/m^2.
+			! IF(I .EQ. 226)THEN
+			! 		print*,''
+      ! 	  print*, 'energy bin for monoenergetic beam [keV] = ', EE(I)*100.0
+      !    PHIINF(I) = 64015.4766 !Means: Input flux of 'something'cm-2s-1eV-1 at E bin chosen
+      !    ! I = 185 and phiinf = 1273777.38 for 5keV
+      !    ! I = 210 and phiinf = 630455.438 for 10keV
+      !    ! I = 226 and phiinf = 64015.4766 for 20keV
+      !    ! I = 242 and phiinf = 4847.77393 for 50keV
+      !    ! I = 251 and phiinf = 1260.91101 for 100keV
+      !    ! I = 260 and phiinf = 660.477173 for 200keV
+      !    print*, 'Energy flux [eV-1 cm-2 s-1] = ',phiinf(i)
+			! 		print*, 'Delta E [eV] = ', DEL(I)
+			! 		print*, 'Energy flux [mW m-2] = ', phiinf(i)*DEL(I)*EE(I)*1.60217662e-12*0.5
+			! 		print*, 'For 1 mW/m^2, use phiinf = ', 2/(DEL(I)*EE(I)*1.60217662e-12)
+			! 		print*, ''
+      ! ENDIF
 !*****NOM Uncomment the next lines for a monogenergetic beam
 !c       IF(I .EQ. 227)THEN
 !c          PHIINF(I) = 4.85e4 !Means: Input flux of 'something'cm-2s-1eV-1 at E bin chosen
@@ -572,24 +593,24 @@ enddo
 !C      $2.7  read in photoelectron prod. rate which is a function of
 !C        alt. (ip) and energy (j).
 !C-----------------------------------------------------------------
-	  print*, 'reading photoel. files'
-	  read(11,*)
-	  read(11,*)
-	  read(11,911)IPMAX,JBINS
+	  ! print*, 'reading photoel. files'
+	  ! read(11,*)
+	  ! read(11,*)
+	  ! read(11,911)IPMAX,JBINS
 !C.........................jbins: energy bins used in ephot.
- 911  FORMAT(2I6)
-
-	  if (jbins .lt. jmax) then
-	  	write(6,*)'jbins,jmax=',jbins,jmax
-	  	stop 'not enough energy bins in ephot! '
-	  endif
-
-      IF(JBINS .eq. JMAX) GO TO 125
-
- 731   READ(11,912) (dumm(I),I=1,IPMAX)  ! dummy
+ ! 911  FORMAT(2I6)
+ !
+	!   if (jbins .lt. jmax) then
+	!   	write(6,*)'jbins,jmax=',jbins,jmax
+	!   	stop 'not enough energy bins in ephot! '
+	!   endif
+ !
+ !      IF(JBINS .eq. JMAX) GO TO 125
+ !
+ ! 731   READ(11,912) (dumm(I),I=1,IPMAX)  ! dummy
  912  FORMAT(1X,1P10E11.3)
-      JBINS=JBINS-1
-      IF(JBINS .GT. JMAX) GO TO 731
+ !      JBINS=JBINS-1
+ !      IF(JBINS .GT. JMAX) GO TO 731
 !C.......................
 
 !C**********-------------
@@ -606,14 +627,16 @@ enddo
 !c	  enddo
 !***nom Read in the electron production from the ion precipitation
 !		print*, 'reading sec elect prod files'
-		eprodf = 0.0
-		eprofb = 0.0
+		eprodf = 0.0;sprodf = 0.0
+		eprofb = 0.0;sprofb = 0.0
 	  do JL=1,260
 !c	  	J1=JBINS-JL+1
 !		J1 = JL !This is ONLY done for the sec elects from Ion MC code because of output format
 	   read(20,912)(sprodf(I,jl),I=1,IPMAX)
 	   read(22,912)(sprodb(I,jl),I=1,IPMAX)
 	  enddo
+    write(*,*) sum(sprodf),sum(sprodb),sum(sprodf)+sum(sprodb)
+    ! stop
 		do i=1,ipmax !Looping through altitude bins
 		  do jen=1,ne !Looping through energy bins
 		    eprodf(i,jen) = (sprodf(i,jen)/del(jen)) !nz&ne+1 to not include labels on first row and first column
@@ -621,14 +644,15 @@ enddo
 		  enddo
 		enddo
 	  open(80, file='secelcheck.chk', status='unknown')
-		write(2323,*) '# Energy', rad(195)*1E-5, rad(220)*1E-5, rad(245)*1E-5, rad(295)*1E-5,&
+123 format(A11,8(11x,'x',F5.0))
+		write(2323,123) ' # Energy', rad(195)*1E-5, rad(220)*1E-5, rad(245)*1E-5, rad(295)*1E-5,&
 		rad(420)*1E-5, rad(545)*1E-5, rad(795)*1E-5, rad(1045)*1E-5
 	  DO JL=1,jmax
       write(80,912)(sprodf(I,jl),I=1,IPMAX)
-			if (sprodf(220,jl).gt.0.0) then
+			! if (sprodf(220,jl).gt.0.0) then
 				write(2323,*) ee(jl), eprodf(195,jl), eprodf(220,jl), eprodf(245,jl),&
 				eprodf(295,jl), eprodf(420,jl), eprodf(545,jl), eprodf(795,jl), eprodf(1045,jl)
-			end if
+			! end if
 		enddo
 	  write(80,*) '*********************************'
 	  DO JL=1,jmax
@@ -976,18 +1000,18 @@ DO 70 K=1,L
 !* calculated by SIGDIS
      	if(IBB .eq. 3)then
      		CALL SIGDIS(EBMM,SIGHFAST)
-        SIGAG = (SIGFE(EBMM,IBB,1)+ SIGHFAST)*DELE(J)
-      else
-      	SIGAG=SIGFE(EBMM,IBB,1)*DELE(J)
-      endif
-    	DO II=1,IMAX
-  			AGLW(II,1,IBB)=AGLW(II,1,IBB)+(PHIUP(J,II)+PHIDWN(J,II))*SIGAG*ZSPEC(1,II)/AREA(II)
-     		if(IBB .eq. 4)then
-     			AGLW(II,1,IBB) = 0.95 * AGLW(II,1,IBB) !This will give the cascade emission.
+        	SIGAG = (SIGFE(EBMM,IBB,1)+ SIGHFAST)*DELE(J)
+        else
+        	SIGAG=SIGFE(EBMM,IBB,1)*DELE(J)
+        endif
+      	DO 471 II=1,IMAX
+  471 		AGLW(II,1,IBB)=AGLW(II,1,IBB)+(PHIUP(J,II)+PHIDWN(J,II))*SIGAG*ZSPEC(1,II)/AREA(II)
+     	if(IBB .eq. 4)then
+     		AGLW(II,1,IBB) = 0.95 * AGLW(II,1,IBB) !This will give the cascade emission.
+				! stop
 !* Might have to play with the percent that cascades to Ly alpha band
-				endif
-			end do
-  470 CONTINUE
+		endif
+  470 	CONTINUE
 			write(53,*) EBMM, (SIGFE(EBMM,ibb,1), ibb=1,nappp)
       NAPPP=NAPP(2) !For species 2 = He
       DO 475 IBB=1,NAPPP
