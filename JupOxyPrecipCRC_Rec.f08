@@ -230,7 +230,7 @@ read(arg,'(I100)') trial
 in=trial !RNG seed
 call rluxgo(lux,in,k1,k2)
 !********************************** Begin Run **********************************
-do run=number_of_energies,1
+do run=number_of_energies,1,-1
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
   energy=nint(Eion(run))
   write(filename,'("../scratch/Jup_Oxy/Output/",I0,"keV/Seeds.dat")') energy
