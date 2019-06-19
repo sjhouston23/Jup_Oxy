@@ -55,7 +55,6 @@ integer nStopPowerEBins !Number of stopping power energy bins
 integer nProc,nChS !Number of processes and charge states
 integer ne,na !Number of electron energy and angle bins
 integer nOutputFiles
-integer stephen
 
 real*8 oxEngBinSize !Size of oxygen bins
 real*8 stopPowerEBinSize !Size of stopping power bins
@@ -75,7 +74,7 @@ integer t3,t4,clock_max,clock_rate !Used to calculate comp. time
 integer numSim,dpt,maxDpt !Depth integers
 integer initQ,tempQ,tempQold,excite !Charge states and excitation
 integer addElect,bin,disso,process,processE,processC(36),PID(2),ds
-integer processEnergies(12),binNo
+integer processEnergies(12)
 !* For large integer counts
 integer(kind=int64) :: elect,totalElect,tElectFwd,tElectBwd !Total Electrons
 integer(kind=int64) :: eCounts(nE2strBins),electFwdA(atmosLen) !Electrons fwd
@@ -140,15 +139,11 @@ integer eAngleCounts(790),elecAbins(180),EAC(180)
 data del/20*0.5,70*1.0,10*2.0,20*5.0,10*10.0,20*10.0,10*50.0,10*100.0,40*200.0,&
          10*400,10*1000,10*2000,10*5000,10*10000.0/
 data engBins/nOxEngBins*oxEngBinSize/ !Used for oxygen binning
-!data delSP/100*0.1,990*1.0,400*10/ !Binning for stopping power (n=1490)
-!data delSP/1000*1.0,400*10,200*100/ !Binning for stopping power (n=1600)
 data delSP/100*1.0,90*10,90*100,15*1000/ !Binning for stopping power (n=295)
 data delAVGe/200*10,400*20,140*100,50*1000/
 data processC/28,30,18,20,13,15,23,25,27,29,22,24,12,14,33,35,3,5,22,24,8,10,&
               16,26,11,23,24,2,4,21,7,9,31,1,6,36/
-!data processEnergies/1,10,50,75,100,200,500,1000,1100,1400,1450,1600/!nStopPowerEBins
 data processEnergies/1,10,50,75,100,110,140,190,200,230,280,295/!nStopPowerEBins
-!data processEnergies/110,115,120,124,125,126,130,140,190,200,230,280/!nStopPowerEBins
 !* Output data file names: (nOutputFiles)
 data filenames/'H+_Prod','H2+_Prod','H2_Excite_Prod','Oxy_Vs_Energy',&
 'Stopping_Power','Processes','2Str_Elect_Fwd','2Str_Elect_Bwd'/
@@ -230,15 +225,11 @@ end do
 !* 1=1, 2=10, 3=50, 4=75, 5=100, 6=200, 7=500, 8=1000, 9=2000, 10=5000,
 !* 11=10000, 12=25000
 !*******************************************************************************
-number_of_ions=100!00!000!000
+number_of_ions=1
 trial=2
-do m=2,2
-  write(*,*) 'Charge state:',m-2
-  stephen=1
 do run=8,8!1,number_of_energies
   call system_clock(t3,clock_rate,clock_max) !Comp. time of each run
   energy=int(Eion(run))
-!~  goto 6000 !~
   write(*,*) ''
   write(*,*) "------------------------------------------NEW RUN----------------&
               --------------------------"
@@ -248,11 +239,9 @@ do run=8,8!1,number_of_energies
   write(*,*) "*****************************************************************&
               **************************"
   write(*,*) ''
-!~  6000 continue !~
 !*************************** Random Number Generator ***************************
   !k1=0,k2=0 Should be set to zero unless restarting at a break (See ranlux.f08)
   in=trial !RNG seed
-  !~write(*,*) "RNG Seed = ", in !~
   call rluxgo(lux,in,k1,k2)
   allocate(angle(number_of_ions))
   call ranlux(angle,number_of_ions) !Calculate all the angles to be used here
@@ -262,22 +251,18 @@ do run=8,8!1,number_of_energies
   H2Ex  =0;oxygen    =0;electFwdAE=0;electBwdAE=0;dEvsEng=0.0
   averageEe=0.0;averageEa=0.0;averageEe1=0.0;averageEa1=0.0
 !************************ Ion Precipitation Begins Here ************************
-!~  write(*,*) 'Starting Ion Precipitiaton: ', energy !Double check energy !~
+  write(*,*) 'Starting Ion Precipitiaton: ', energy !Double check energy !~
   do ion=1,number_of_ions !Each ion starts here
-    !write(*,*) 'Ion Number: ', ion !Write out each ion if so desired
-    !*****************************
-    !Reset Variables:
-
     !*****************************
     !Initial Conditions:
     pangle=0.0         !Reset the pitch angle for every run
     incB  =0.0         !Incident B-field
     kappa =0.0         !Used to account for pitch angle
-    numSim=energy*1000 !Number of simulations for a single ion. Must be great !~
+    numSim=energy*1000 !Number of simulations for a single ion. Must be great
                        !enough to allow the ion to lose all energy
     E=Eion(run)        !Start with initial ion energy
     dE=0.0             !Energy loss
-    initQ=m!8            !1 is an initial charge state of -1
+    initQ=3            !1 is an initial charge state of -1, 3 is O+
     tempQ=initQ        !Set the charge state variable that will be changed to 1
     tempQold=initQ     !Need another charge state variable for energyLoss.f08
     dNTot=0.0          !Reset the column density to the top of the atm.
@@ -291,7 +276,7 @@ do run=8,8!1,number_of_energies
     !*****************************
     pangle=(2.0*atan(1.0))-acos(angle(ion)) !Pitch angle calculation has a
     !cosine dist. Straight down is pitch angle of 0, random number must be 0
-    write(*,*) 'Ion Number: ', ion, 'Pitch angle: ', pangle*90/acos(0.0)!, angle(ion), cos(pangle) !~
+    write(*,*) 'Ion Number: ', ion, 'Pitch angle: ', pangle*90/acos(0.0)!
     kappa=1.0/(cos(pangle)*cos(incB)) !Used to convert from ds to dz
     call ranlux(ranVecA,1000002) !Get a random vector for collisions
     do i=1,numSim !This loop repeats after each collision until E < 1 keV/u
@@ -319,22 +304,6 @@ do run=8,8!1,number_of_energies
       eAngleDS=0.0;eEnergyDS=0.0
       !*****************************
       call CollisionSim(E,tempQ,sigTot,process,excite,elect,disso,PID)
-      if(stephen.eq.1)then
-!        write(*,*) 'Ion energy:     Average E Loss:  Number of simulations:'!   &
-!~        Average E_e1: Avg theta_e1:'! Average E_e2: Avg theta_e1:' !~
-        !write(*,*) 'Targ. Frame Ee[eV]:  Targ. Frame Eangle[degrees]:       Ee[au]:      &
-        !V_proj[au]:    V_z[au]:    V_squared[au]:    Proj. Frame Ee[eV]:     dE[eV]:'
-        stephen=2
-      end if
-!SI+SS      process=28;PID(1)=1;PID(2)=1;excite=0;elect=2;disso=1;tempQ=initQ !~ SI+SS
-!SI+DS      process=17;PID(1)=1;PID(2)=2;excite=0;elect=3;disso=1;tempQ=initQ !~
-!SC+DS      process=7;PID(1)=4;PID(2)=2;excite=1;elect=2;disso=1;tempQ=initQ
-!SI      process=34;PID(1)=1;PID(2)=0;excite=0;elect=1;disso=1;tempQ=initQ !~
-!DI      process=35;PID(1)=2;PID(2)=0;excite=0;elect=2;disso=2;tempQ=initQ !~
-!TI      process=25;PID(1)=3;PID(2)=0;excite=0;elect=1;disso=2;tempQ=initQ !~
-!DCAI      process=23;PID(1)=6;PID(2)=0;excite=0;elect=1;disso=2;tempQ=initQ !~
-!SC      process=30;PID(1)=4;PID(2)=0;excite=1;elect=0;disso=1;tempQ=initQ !~
-      binNo=processEnergies(run) !~
       collisions(PID(1)+1,PID(2)+1)=collisions(PID(1)+1,PID(2)+1)+1!Count collisions
 7000 continue
       l=l+1
@@ -371,8 +340,6 @@ do run=8,8!1,number_of_energies
           goto 4000 !Continue on to the next ion
         end if !Column density if-statement
       end do !Column density do-loop
-!SCALE HEIGHT CHECK          avg(ion)=Altitude(dpt)-Altitude(j)
-!W          write(*,*) j,dN,ranVecA(l),altitude(j),Altitude(dpt)-Altitude(j),altitude(k),dZ*1e-5,E,process,tempQ,excite
 !*********************** Secondary Electron Calculations ***********************
       1000 continue
       if(PID(1).eq.4.or.PID(1).eq.5.or.PID(1).eq.7)then !Other processes
@@ -404,23 +371,13 @@ do run=8,8!1,number_of_energies
         call EjectedElectron(E,processE,tempQold,eProbFunc,aProbFunc,&
                              eEnergyTmp,eAngle,bin)
                              !eangle=18.0
-        !**if(E.lt.360.5)write(*,*) eEnergyTmp,ProcessE
         if(processE.eq.5)then
           eAngleSS=eAngle !Need the ejection angle for energy transformation
           eEnergySS=eEnergyTmp
-          ! averageEe(int(E))=eEnergySS+averageEe(int(E))
-          ! averageEa(int(E))=eAngleSS+averageEa(int(E))
         end if
         if(processE.eq.6)then
           eAngleDS(ds)=eAngle
           eEnergyDS(ds)=eEnergyTmp
-          ! if(ds.eq.1)then
-          !   averageEe=eEnergyDS(ds)+averageEe
-          !   averageEa=eAngleDS(ds)+averageEa
-          ! elseif(ds.eq.2)then
-          !   averageEe1=eEnergyDS(ds)+averageEe1
-          !   averageEa1=eAngleDS(ds)+averageEa1
-          ! end if
           ds=ds+1
         end if
         totalElect=totalElect+1 !Total number of electrons produced
@@ -443,9 +400,7 @@ do run=8,8!1,number_of_energies
         !and DS have to be transformed into a different reference frame
         if(processE.le.4)eEnergy=eEnergy+eEnergyTmp
         addElect=addElect+1
-!        write(*,*) process, PID(1),PID(2),eEnergyTmp,eAngle, i
       end do !j=1,elect
-      !write(*,*) process, E, tempQ, eEnergy/1e3,eAngle,bin,PID(1),PID(2)
 !********************** Counting Oxygen & H/H2 Production **********************
       oxygen(process,dpt,tempQ)=oxygen(process,dpt,tempQ)+1
       !If the process is SI, SC, or NEG, then there's a chance of dissociation
@@ -463,42 +418,11 @@ do run=8,8!1,number_of_energies
         H2Ex(dpt)=H2Ex(dpt)+1
       end if
 !************************** Energy Loss Calculations ***************************
-      !Get the dE from the process and electrons
-      !write(*,*) eEnergyDS
-      !E=50;PID(2)=1;eEnergySS=92.71;eAngleSS=9.116;tempQold=4
-      ! goto 17002
-      ! do j=1,790
-      !   if(eEnergySS.le.elecEbins(j))then    !~
-      !     eAngleAVG(j)=eAngleAVG(j)+eAngleSS !~
-      !     eAngleCounts(j)=eAngleCounts(j)+1  !~
-      !     goto 17001
-      !   end if
-      ! end do
-      ! 17001 continue
-      ! do j=1,180
-      !   if(eAngleSS.le.elecAbins(j))then  !~
-      !     EAC(j)=EAC(j)+1 !Angle counts   !~
-      !     goto 17002
-      !   end if
-      ! end do
-      ! 17002 continue
-    !  eEnergySS=8726.157;eAngleSS=7.2789
-    !  eEnergySS=8590;eAngleSS=5.9;E=10000
-    ! eEnergyDS(1)=25338;eEnergyDS(2)=15252;eAngleDS(1)=133;eAngleDS(2)=63
-    ! PID(1)=4;PID(2)=2;E=2.5;tempQold=2
       call energyloss(E,tempQold,eEnergy,PID,dE,eAngleSS,eEnergySS,&
-                      eAngleDS,eEnergyDS)!,eE,eA)
-    !  stop
+                      eAngleDS,eEnergyDS)
       dEsp=(dE)/dN !stopping power (calc before dE is recalculated)
       dEold=dE
-!      if(dEsp.gt.1e-7)write(*,*) dE,dN,i,altitude(dpt),dEsp,E,PID(1),PID(2)
       dE=(1/mass)*(1.0e-3)*(dE+stpnuc(E)*dN)*kappa !Total dE function
-      ! if(E.lt.100.and.dEold.ge.10000)write(*,*) E,dE,dEold,PID(1),PID(2),&
-      ! process,eAngleDS(1),eAngleDS(2),eEnergyDS(1),eEnergyDS(2)
-!      write(*,10001) E,dE,dEold,PID(1),PID(2),tempQold
-!      if(i.eq.99)stop
-      !dEold=dEold+stpnuc(E)*dN
-!      if(E.lt.3134.3)write(*,*) E, dE, process, tempQ, tempQold,eAngle,pangle*90/acos(0.0)
 !********************** Oxygen Charge State Distribution ***********************
       !if(run.eq.number_of_energies)then !Only calculate charge state distribution for highest E
         do j=1,nOxEngBins
@@ -522,26 +446,18 @@ do run=8,8!1,number_of_energies
         end if
       end do
 3000 continue
-      E=E-dE!0.1 !Find the new energy !~
+      E=E-dE !Find the new energy
       tempQold=tempQ !Assign newly acquired charge state to old variable
       if(E.lt.1.0) goto 4000 !Stop once the energy is less than 1 keV/u
-      ! if(i.eq.numSim)then !~
-      !   write(*,*) 'JupOxyPrecip.f08: ERROR: numSim not large enough.' !~
-      !   write(*,*) 'JupOxyPrecip.f08: Ion energy was: ',E
-      !   goto 4000
-      ! end if
+      if(i.eq.numSim)then
+        write(*,*) 'JupOxyPrecip.f08: ERROR: numSim not large enough.'
+        write(*,*) 'JupOxyPrecip.f08: Ion energy was: ',E
+        goto 4000
+      end if
     end do !i=1,numSim
 4000 continue !Continue to go on to the next ion
 !  flush(6) !Used to flush stdout when remotely running program
   end do !ion=1,number_of_ions
-!~  do i=1,100
-!~    write(*,*) i,averageEe(i)/number_of_ions/10,averageEa(i)/number_of_ions/10
-!~  end do
-  ! write(*,99999) stopPowerEBins(binNo),dEvsEng(binNo)/real(nSPions(binNo)),& !~
-  ! nSPions(binNo)!,averageEe/real(numsim),averageEa/real(numsim)!,&
-
-  !averageEe1/real(numsim),averageEa1/real(numsim) !~
-!~  goto 5000 !~
 !******************************** Output Header ********************************
   write(*,*) ''
   write(*,*) "------------------------------------------NEW RUN----------------&
@@ -652,32 +568,13 @@ do run=8,8!1,number_of_energies
   write(*,*) '--------------------------------------------------'
   write(*,*) ' Total collisions:   ',sum(SIM)
 
-!SCALE HEIGHT CHECK      write(*,*) sum(avg)/100
   call system_clock(t4,clock_rate,clock_max) !Elapsed time for a single energy
   hrs=int(real(t4-t3)/clock_rate/3600.0)
   min=int(((real(t4-t3)/clock_rate)-hrs*3600)/60)
   sec=mod(real(t4-t3)/clock_rate,60.0)
   write(*,*) 'Individual run elapsed real time = ',hrs,':',min,':',sec
-!~  5000 continue !~
-  ! open(unit=200,file='./Output/eAngleAVG1.dat',status='unknown')
-  ! do i=82,790
-  !   if(eAngleCounts(i).gt.0)then
-  !     write(200,*) elecEbins(i),eAngleAVG(i)/real(eAngleCounts(i)),&
-  !     eAngleCounts(i),real(eAngleCounts(i))/delAVGe(i)
-  !   end if
-  ! end do
-  ! close(200)
-  ! open(unit=201,file='./Output/eAngleC1.dat',status='unknown')
-  ! do i=1,180
-  !   if(EAC(i).gt.0)then
-  !     write(201,*) elecAbins(i),EAC(i)
-  !   end if
-  ! end do
-  ! close(201)
   deallocate(angle)
 end do !run=1,number_of_energies
-end do !m=2,10
-!write(*,*) averageEe/real(numsim),averageEa/real(numsim)
 call system_clock (t2,clock_rateTotal,clock_maxTotal) !Total elapsed time
 write (*,*) 'Total elapsed real time = ', real(t2-t1)/clock_rateTotal
 !**************************** Formatting conditions ****************************
@@ -686,5 +583,4 @@ write (*,*) 'Total elapsed real time = ', real(t2-t1)/clock_rateTotal
 !* this creates formatting.o, which then needs to be included in the command to
 !* run this code.
 !*******************************************************************************
-!99999 format(3x,F8.2,9x,F11.2,16x,I8)!,8x,F8.2,8x,F6.2)!,6x,F8.2,8x,F6.2)
 end program
