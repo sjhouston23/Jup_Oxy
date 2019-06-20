@@ -2,13 +2,18 @@
 
 The top portion is for running the oxygen precipitation code locally. The bottom discusses the oxygen precipitation code that has been edited for the computing cluster (CRC).
 
-I have already run, and gotten results for, a bunch of different energies. The only reason to re-run any of the energies is if new cross-sections become available or you want a new energy that I haven't run yet. When using the computing cluster, I would run ~20,000 ions at one time
-:q
+I have already run, and gotten results for, a bunch of different energies. The only reason to re-run any of the energies is if new cross-sections become available or you want a new energy that I haven't run yet. When using the computing cluster, I would run ~20,000 ions at one time.
+
+Most codes I have written will have a description of what they do at the very top of the code.
 
 ------------------------------------------------------------------
 
+To create the formatting module:
+gfortran -c formatting.f08
+This creates formatting.o to be used in the next command.
+
 The following command is used to run the JupOxyPrecip.f08 program:
-gfortran -O3 -o oxy JupOxyPrecip.f08 spline.f08 splineinterp.f08 ranlux.f08 CollisionSim.f08 EjectedElectron.f08 EnergyLoss.f08 STPNUC.f08 && ./oxy
+gfortran -O3 -o oxy JupOxyPrecip.f08 spline.f08 splineinterp.f08 ranlux.f08 CollisionSim.f08 EjectedElectron.f08 EnergyLoss.f08 STPNUC.f08 formatting.o && ./oxy
 
 JupOxyPrecip.f08 is the main oxygen precipitation program. It loops through all of the desired energies (variable Eion, defined in the "Data Declaration" section) and calculates the results for them. The number of ions it considered is defined in the variable "number_of_ions", currently on line 228. The following line (229), defining "trial", is what separates the output files for different runs. Each run is labeled with the number that is set here. The next line (230) begins the do-loop for which energy to run. Each energy is numbered a few lines above this one, so you can set it to do a single energy. Or you can loop it to do multiple energies.
 
@@ -16,7 +21,7 @@ This code is well commented, so most of the things within it can be figured out 
 
 spline.f08 - Part of the spline interpolator. This particular subroutine finds all of the second derivative values for whatever is being interpolated and is used in a lot of my programs.
 
-splineinter.f08 - The actual interpolator that uses the values calculated by spline.f08. Also used in many of my programs.
+splineinterp.f08 - The actual interpolator that uses the values calculated by spline.f08. Also used in many of my programs.
 
 ranlux.f08 - The random number generator. It is seeded by calling rluxgo (e.g. on line 245) and it generates an array of random numbers by calling ranlux (e.g. on line 247). In my case, I have seeded the random number generator with whatever the trial number is.
 
@@ -25,6 +30,8 @@ CollisionSim.f08 - Pulls in all of the integral cross-sections to determine whic
 EjectedElectron.f08 - If an electron is ejected, this subroutine is called so it can figure out the energy and angle of the ejected electron. It uses singly differential cross-sections for both energy and angle (these cross-sections are read in at the beginning of JupOxyPrecip.f08, lines 171-188).
 
 EnergyLoss.f08 - Determines the amount of energy that is lost after the collision occurs. It separates all of the collision energy models and calculates an energy loss for a specific energy.
+
+formatting.o - Has all of the formatting code in it so it doesn't take up a bunch of space at the bottom of the code and is reused for various programs.
 
 ------------------------------------------------------------------
 
@@ -35,7 +42,7 @@ In general, you can learn more about how to use the cluster here: https://crc.ku
 The code I have made for the cluster is JupOxyPrecipCRC_Rec.f08 (Rec, meaning recursive). To compile this you use the following command:
 gfortran -o oxy.x JupOxyPrecipCRC_Rec.f08 ranlux.f08 CollisionSim.f08 EjectedElectron.f08 EnergyLoss.f08 STPNUC.f08 formatting.o
 
-Notice that this command doesn't actually execute the compiled executable. This is because rather than executing the file once, you want to execute it 100 or 200 times. The number of ion's currently defined in the program is 100. So if you execute it 200 times, you'll get the results for 20,000 ions. But there are a couple things to note before this can be done.
+Notice that this command doesn't actually execute the compiled executable. This is because rather than executing the file once, you want to execute it 100 or 200 times. The number of ions currently defined in the program is 100. So if you execute it 200 times, you'll get the results for 20,000 ions. But there are a couple things to note before this can be done.
 
 After you get access to the cluster you do the following:
 
